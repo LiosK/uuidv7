@@ -1,0 +1,33 @@
+{
+  "name": "uuidv7",
+  "version": "0.1.0",
+  "description": "An experimental implementation of the proposed UUIDv7",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "prepare": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LiosK/uuidv7.git"
+  },
+  "keywords": [
+    "uuid",
+    "uuidv7"
+  ],
+  "author": "LiosK <contact@mail.liosk.net>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/LiosK/uuidv7/issues"
+  },
+  "homepage": "https://github.com/LiosK/uuidv7#readme",
+  "devDependencies": {
+    "typescript": "^4.4.2"
+  }
+}
