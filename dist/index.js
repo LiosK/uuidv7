@@ -39,6 +39,8 @@ const hex = (safeUint, d) => {
 let ts = 0;
 /** Internal state - sequence counter */
 let seq = 0;
+/** Internal state - maximum initial value of seq */
+let maxInitialSeq = 0x800;
 /**
  * Updates the internal state and returns the latest values.
  *
@@ -48,17 +50,18 @@ const updateTsAndSeq = () => {
     let newTs = Date.now();
     if (ts < newTs) {
         ts = newTs;
-        seq = 0;
+        seq = Math.floor(Math.random() * maxInitialSeq);
     }
     else {
         seq++;
         if (seq > 0xfff) {
+            maxInitialSeq >>= 1; // gradually reduce it to zero when seq overflows
             // wait a moment until clock moves; reset state and continue otherwise
             for (let i = 0; ts >= newTs && i < 1000000; i++) {
                 newTs = Date.now();
             }
             ts = newTs;
-            seq = 0;
+            seq = Math.floor(Math.random() * maxInitialSeq);
         }
     }
     return [ts, seq];
