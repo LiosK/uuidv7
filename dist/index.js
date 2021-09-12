@@ -1,3 +1,4 @@
+"use strict";
 /**
  * uuidv7: an experimental implementation of the proposed UUIDv7
  *
@@ -5,13 +6,15 @@
  * @copyright 2021 LiosK
  * @packageDocumentation
  */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.uuidv7 = void 0;
 /**
  * Generates a UUIDv7 hexadecimal string.
  *
  * @returns 8-4-4-4-12 hexadecimal string representation
  * ("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
  */
-export const uuidv7 = () => {
+const uuidv7 = () => {
     const [ts, seq] = updateTsAndSeq();
     let hexTs = "00000000" + (ts / 1000).toString(16);
     hexTs += /\./.test(hexTs) ? "00" : ".000";
@@ -31,6 +34,7 @@ export const uuidv7 = () => {
         hex(Math.floor(Math.random() * 16777216) * 16777216 +
             Math.floor(Math.random() * 16777216), 12));
 };
+exports.uuidv7 = uuidv7;
 /** Formats a safe unsigned integer as `d`-digit hexadecimal string. */
 const hex = (safeUint, d) => {
     return ("0000000000000" + safeUint.toString(16)).slice(-d);
