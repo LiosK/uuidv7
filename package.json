@@ -16,9 +16,14 @@
     "dist"
   ],
   "sideEffects": false,
+  "browser": {
+    "crypto": "./dist/dummy_crypto.js"
+  },
   "scripts": {
+    "build": "tsc",
     "bundle_test": "webpack ./test/*.mjs -o ./test/bundle --mode production",
-    "prepare": "tsc && npm run bundle_test",
+    "clean": "rm -rf ./dist ./test/bundle",
+    "prepare": "npm run clean && npm run build && npm run bundle_test",
     "test": "mocha"
   },
   "repository": {
