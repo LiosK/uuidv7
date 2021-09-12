@@ -8,6 +8,9 @@
     "import": "./alt/esm.mjs",
     "require": "./dist/index.js"
   },
+  "bin": {
+    "uuidv7": "./alt/cli.cjs"
+  },
   "files": [
     "alt",
     "dist"
