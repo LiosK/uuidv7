@@ -1,16 +1,29 @@
 {
   "name": "uuidv7",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "An experimental implementation of the proposed UUIDv7",
-  "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "sideEffects": false,
+  "exports": {
+    "import": "./alt/esm.mjs",
+    "require": "./dist/index.js"
+  },
+  "bin": {
+    "uuidv7": "./alt/cli.cjs"
+  },
   "files": [
+    "alt",
     "dist"
   ],
+  "sideEffects": false,
+  "browser": {
+    "crypto": "./dist/dummy_crypto.js"
+  },
   "scripts": {
-    "prepare": "tsc",
+    "build": "tsc",
+    "bundle_test": "webpack ./test/*.mjs -o ./test/bundle --mode production",
+    "clean": "rm -rf ./dist ./test/bundle",
+    "prepare": "npm run clean && npm run build && npm run bundle_test",
     "test": "mocha"
   },
   "repository": {
@@ -29,6 +42,8 @@
   "homepage": "https://github.com/LiosK/uuidv7#readme",
   "devDependencies": {
     "mocha": "^9.1.1",
-    "typescript": "^4.4.2"
+    "typescript": "^4.4.3",
+    "webpack": "^5.52.1",
+    "webpack-cli": "^4.8.0"
   }
 }

@@ -1,4 +1,4 @@
-import { uuidv7 } from "../dist/index.js";
+import { uuidv7 } from "uuidv7";
 const assert = (expression, message = "") => {
   if (!expression) {
     throw new Error("Assertion failed" + (message ? ": " + message : ""));
@@ -33,10 +33,11 @@ describe("uuidv7()", function () {
     // tests leading 60 bits (skipping version bits) only
     const re = /^([0-9a-f]{8})-([0-9a-f])([0-9a-f]{3})-7([0-9a-f]{3})/;
     for (let i = 0; i < 10_000; i++) {
+      const now = Date.now() / 1000;
       const m = re.exec(uuidv7());
       const unixts = parseInt(m[1] + m[2], 16);
       const subsec = parseInt(m[3] + m[4], 16) / (1 << 24);
-      assert(Math.abs(Date.now() / 1000 - (unixts + subsec)) < 0.01);
+      assert(Math.abs(now - (unixts + subsec)) < 0.01);
     }
   });
 
