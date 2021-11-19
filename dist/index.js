@@ -1,6 +1,6 @@
 "use strict";
 /**
- * uuidv7: an experimental implementation of the proposed UUIDv7
+ * uuidv7: An experimental implementation of the proposed UUID Version 7
  *
  * @license Apache-2.0
  * @copyright 2021 LiosK
