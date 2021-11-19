@@ -15,22 +15,26 @@ import { randomFillSync } from "crypto";
  * ("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
  */
 export const uuidv7 = (): string => {
-  const [ts, seq] = updateTsAndSeq();
+  const [sec, subsec] = getTimestamp();
 
-  let hexTs = "00000000" + (ts / 1000).toString(16);
-  hexTs += /\./.test(hexTs) ? "00" : ".000";
-  const match = /([0-9a-f]{8})([0-9a-f])\.([0-9a-f]{3})/.exec(hexTs);
-  if (match == null) {
-    throw new Error(`assertion error: ${hexTs} !~ xxxxxxxxx.xxx`);
+  const hexSec = "00000000" + sec.toString(16);
+  const matchSec = /([0-9a-f]{8})([0-9a-f])$/.exec(hexSec);
+
+  const hexSubsec = (subsec === 0 ? "0.0" : subsec.toString(16)) + "00000";
+  const matchSubsec = /^0\.([0-9a-f]{3})([0-9a-f]{3})/.exec(hexSubsec);
+
+  if (matchSec == null || matchSubsec == null) {
+    const message = `${hexSec}.${hexSubsec} !~ xxxxxxxxx.xxxxxx`;
+    throw new Error(`assertion error: ${message}`);
   }
 
   return (
-    match[1] +
+    matchSec[1] +
     "-" +
-    match[2] +
-    match[3] +
-    "-" +
-    hex(0x7000 | seq, 4) +
+    matchSec[2] +
+    matchSubsec[1] +
+    "-7" +
+    matchSubsec[2] +
     "-" +
     hex(0x8000 | rand(14), 4) +
     "-" +
@@ -67,41 +71,46 @@ const rand: (k: number) => number = (() => {
   }
 })();
 
-/** Internal state - timestamp */
-let ts = 0;
-
-/** Internal state - sequence counter */
-let seq = 0;
-
-/** Internal state - bit width of maximum initial value of seq */
-let maxInitialSeqLen = 11;
+/** Millisecond timestamp at last generation. */
+let lastMsec = 0;
 
 /**
- * Updates the internal state and returns the latest values.
- *
- * @returns [timestamp, sequence counter]
+ * Submillisecond timestamp fraction at last generation, represented as a
+ * multiple of 1 / 0x1_0000.
  */
-const updateTsAndSeq = (): [number, number] => {
-  let newTs = Date.now();
-  if (ts < newTs) {
-    ts = newTs;
-    seq = rand(maxInitialSeqLen);
+let lastSubmsec = 0;
+
+/**
+ * Unit by which the submillisecond fraction is incremented when multiple UUIDs
+ * are generated within the same millisecond.
+ */
+const SUBMSEC_INCREMENT = 16 / 0x1_0000;
+
+/**
+ * Returns the current unix time as a pair of seconds and subsecond fraction.
+ *
+ * @return [sec, subsec]
+ */
+const getTimestamp = (): [number, number] => {
+  let msecNow = Date.now();
+  if (lastMsec < msecNow) {
+    lastMsec = msecNow;
+    lastSubmsec = rand(16) / 0x1_0000;
   } else {
-    seq++;
+    lastSubmsec += SUBMSEC_INCREMENT;
 
-    if (seq > 0xfff) {
-      // gradually reduce initial seq to zero when seq overflows
-      if (maxInitialSeqLen > 0) {
-        maxInitialSeqLen--;
-      }
-
+    if (lastSubmsec > 0xffff / 0x1_0000) {
       // wait a moment until clock moves; reset state and continue otherwise
-      for (let i = 0; ts >= newTs && i < 1_000_000; i++) {
-        newTs = Date.now();
+      for (let i = 0; lastMsec >= msecNow && i < 1_000_000; i++) {
+        msecNow = Date.now();
       }
-      ts = newTs;
-      seq = rand(maxInitialSeqLen);
+      lastMsec = msecNow;
+      lastSubmsec = rand(16) / 0x1_0000;
     }
   }
-  return [ts, seq];
+
+  return [
+    Math.floor(lastMsec / 1_000),
+    ((lastMsec % 1_000) + lastSubmsec) / 1_000,
+  ];
 };

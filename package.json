@@ -1,6 +1,6 @@
 {
   "name": "uuidv7",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "An experimental implementation of the proposed UUIDv7",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -23,7 +23,7 @@
     "build": "tsc",
     "bundle_test": "webpack ./test/*.mjs -o ./test/bundle --mode production",
     "clean": "rm -rf ./dist ./test/bundle",
-    "prepare": "npm run clean && npm run build && npm run bundle_test",
+    "prepare": "npm run clean && npm run build && npm run bundle_test && npm test",
     "test": "mocha"
   },
   "repository": {
@@ -41,9 +41,9 @@
   },
   "homepage": "https://github.com/LiosK/uuidv7#readme",
   "devDependencies": {
-    "mocha": "^9.1.1",
-    "typescript": "^4.4.3",
-    "webpack": "^5.52.1",
-    "webpack-cli": "^4.8.0"
+    "mocha": "^9.1.3",
+    "typescript": "^4.5.2",
+    "webpack": "^5.64.1",
+    "webpack-cli": "^4.9.1"
   }
 }
