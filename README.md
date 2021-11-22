@@ -43,10 +43,10 @@ Where:
   number.
 
 This implementation does not employ a clock sequence counter as defined in the
-draft RFC because such a clock sequence field is simply filled with zeros in
-many common situation and thus wastes the space. Instead, the `subsec` fields
-guarantee the order of the generated UUIDs within the same millisecond by
-incrementing the pseudo-sub-millisecond fraction monotonically.
+draft RFC because such a clock sequence field tends to end up with a waste of
+space by being filled with zeros in many common situations. Instead, the
+`subsec` fields guarantee the order of UUIDs generated within the same
+millisecond by monotonically incrementing the pseudo-sub-millisecond fraction.
 
 ## License
 
