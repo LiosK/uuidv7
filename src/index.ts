@@ -24,7 +24,7 @@ export const uuidv7 = (): string => {
   const matchSubsec = /^0\.([0-9a-f]{3})([0-9a-f]{3})/.exec(hexSubsec);
 
   if (matchSec == null || matchSubsec == null) {
-    const message = `${hexSec}.${hexSubsec} !~ xxxxxxxxx.xxxxxx`;
+    const message = `${hexSec} !~ xxxxxxxxx or ${hexSubsec} !~ 0.xxxxxx`;
     throw new Error(`assertion error: ${message}`);
   }
 
@@ -47,7 +47,7 @@ const hex = (safeUint: number, k: number): string => {
   return ("0000000000000" + safeUint.toString(16)).slice(-k);
 };
 
-/** Returns an `k`-bit unsigned random integer. */
+/** Returns a `k`-bit unsigned random integer. */
 const rand: (k: number) => number = (() => {
   // detect CSPRNG
   if (typeof window !== "undefined" && window.crypto) {
