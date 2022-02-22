@@ -2,7 +2,7 @@
  * uuidv7: An experimental implementation of the proposed UUID Version 7
  *
  * @license Apache-2.0
- * @copyright 2021 LiosK
+ * @copyright 2021-2022 LiosK
  * @packageDocumentation
  */
 
@@ -20,11 +20,11 @@ export const uuidv7 = (): string => {
   const hexSec = "00000000" + sec.toString(16);
   const matchSec = /([0-9a-f]{8})([0-9a-f])$/.exec(hexSec);
 
-  const hexSubsec = (subsec === 0 ? "0.0" : subsec.toString(16)) + "00000";
-  const matchSubsec = /^0\.([0-9a-f]{3})([0-9a-f]{3})/.exec(hexSubsec);
+  const hexSubsec = "00000" + Math.trunc(subsec * 0x100_0000).toString(16);
+  const matchSubsec = /([0-9a-f]{3})([0-9a-f]{3})$/.exec(hexSubsec);
 
   if (matchSec == null || matchSubsec == null) {
-    const message = `${hexSec} !~ xxxxxxxxx or ${hexSubsec} !~ 0.xxxxxx`;
+    const message = "hexSec !~ xxxxxxxxx or hexSubsec !~ xxxxxx";
     throw new Error(`assertion error: ${message}`);
   }
 
