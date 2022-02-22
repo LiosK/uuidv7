@@ -30,31 +30,31 @@ describe("uuidv7()", function () {
   });
 
   it("encodes up-to-date unix timestamp", function () {
-    // tests leading 60 bits (skipping version bits) only
-    const re = /^([0-9a-f]{8})-([0-9a-f])([0-9a-f]{3})-7([0-9a-f]{3})/;
+    // tests leading 48 bits only
+    const re = /^([0-9a-f]{8})-([0-9a-f]{4})-/;
     for (let i = 0; i < 10_000; i++) {
-      const now = Date.now() / 1000;
+      const now = Date.now();
       const m = re.exec(uuidv7());
-      const unixts = parseInt(m[1] + m[2], 16);
-      const subsec = parseInt(m[3] + m[4], 16) / (1 << 24);
-      assert(Math.abs(now - (unixts + subsec)) < 0.01);
+      const unixTsMs = parseInt(m[1] + m[2], 16);
+      assert(Math.abs(now - unixTsMs) < 16);
     }
   });
 
-  it("encodes sortable timestamp", function () {
-    // tests leading 60 bits (skipping version bits) only
-    const re = /^([0-9a-f]{8})-([0-9a-f])([0-9a-f]{3})-7([0-9a-f]{3})/;
+  it("encodes sortable timestamp and counter", function () {
+    // tests leading 80 bits only (subsuming version and variant under counter)
+    const re =
+      /^([0-9a-f]{8})-([0-9a-f]{4})-(7[0-9a-f]{3})-([89ab][0-9a-f]{3})-/;
 
     const m = re.exec(samples[0]);
     let prevU = parseInt(m[1] + m[2], 16);
-    let prevS = parseInt(m[3] + m[4], 16);
+    let prevC = parseInt(m[3] + m[4], 16);
     for (let i = 1; i < samples.length; i++) {
       const m = re.exec(samples[i]);
-      const unixts = parseInt(m[1] + m[2], 16);
-      const subsec = parseInt(m[3] + m[4], 16);
-      assert(prevU < unixts || (prevU === unixts && prevS < subsec));
-      prevU = unixts;
-      prevS = subsec;
+      const unixTsMs = parseInt(m[1] + m[2], 16);
+      const counter = parseInt(m[3] + m[4], 16);
+      assert(prevU < unixTsMs || (prevU === unixTsMs && prevC < counter));
+      prevU = unixTsMs;
+      prevC = counter;
     }
   });
 
@@ -86,7 +86,7 @@ describe("uuidv7()", function () {
     // test if random bits are set to 1 at ~50% probability
     // set margin based on binom dist 99.999% confidence interval
     const margin = 4.417173 * Math.sqrt((0.5 * 0.5) / n);
-    for (let i = 66; i < 128; i++) {
+    for (let i = 80; i < 128; i++) {
       const p = bins[i] / n;
       assert(Math.abs(p - 0.5) < margin, `random bit ${i}: ${p}`);
     }

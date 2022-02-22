@@ -15,28 +15,16 @@ import { randomFillSync } from "crypto";
  * ("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
  */
 export const uuidv7 = (): string => {
-  const [sec, subsec] = getTimestamp();
-
-  const hexSec = "00000000" + sec.toString(16);
-  const matchSec = /([0-9a-f]{8})([0-9a-f])$/.exec(hexSec);
-
-  const hexSubsec = "00000" + Math.trunc(subsec * 0x100_0000).toString(16);
-  const matchSubsec = /([0-9a-f]{3})([0-9a-f]{3})$/.exec(hexSubsec);
-
-  if (matchSec == null || matchSubsec == null) {
-    const message = "hexSec !~ xxxxxxxxx or hexSubsec !~ xxxxxx";
-    throw new Error(`assertion error: ${message}`);
-  }
+  const [timestamp, counter] = getTimestampAndCounter();
 
   return (
-    matchSec[1] +
+    hex(Math.trunc(timestamp / 0x1_0000), 8) +
     "-" +
-    matchSec[2] +
-    matchSubsec[1] +
-    "-7" +
-    matchSubsec[2] +
+    hex(timestamp % 0x1_0000, 4) +
     "-" +
-    hex(0x8000 | rand(14), 4) +
+    hex(0x7000 | (counter >>> 14), 4) +
+    "-" +
+    hex(0x8000 | (counter & 0x3fff), 4) +
     "-" +
     hex(rand(48), 12)
   );
@@ -72,45 +60,32 @@ const rand: (k: number) => number = (() => {
 })();
 
 /** Millisecond timestamp at last generation. */
-let lastMsec = 0;
+let timestamp = 0;
+
+/** Counter value at last generation. */
+let counter = 0;
 
 /**
- * Submillisecond timestamp fraction at last generation, represented as a
- * multiple of 1 / 0x1_0000.
- */
-let lastSubmsec = 0;
-
-/**
- * Unit by which the submillisecond fraction is incremented when multiple UUIDs
- * are generated within the same millisecond.
- */
-const SUBMSEC_INCREMENT = 16 / 0x1_0000;
-
-/**
- * Returns the current unix time as a pair of seconds and subsecond fraction.
+ * Returns the current unix time in milliseconds and the counter value.
  *
- * @return [sec, subsec]
+ * @return [timestamp, counter]
  */
-const getTimestamp = (): [number, number] => {
-  let msecNow = Date.now();
-  if (lastMsec < msecNow) {
-    lastMsec = msecNow;
-    lastSubmsec = rand(16) / 0x1_0000;
+const getTimestampAndCounter = (): [number, number] => {
+  let now = Date.now();
+  if (timestamp < now) {
+    timestamp = now;
+    counter = rand(26);
   } else {
-    lastSubmsec += SUBMSEC_INCREMENT;
-
-    if (lastSubmsec > 0xffff / 0x1_0000) {
+    counter++;
+    if (counter > 0x3ff_ffff) {
       // wait a moment until clock moves; reset state and continue otherwise
-      for (let i = 0; lastMsec >= msecNow && i < 1_000_000; i++) {
-        msecNow = Date.now();
+      for (let i = 0; timestamp >= now && i < 1_000_000; i++) {
+        now = Date.now();
       }
-      lastMsec = msecNow;
-      lastSubmsec = rand(16) / 0x1_0000;
+      timestamp = now;
+      counter = rand(26);
     }
   }
 
-  return [
-    Math.floor(lastMsec / 1_000),
-    ((lastMsec % 1_000) + lastSubmsec) / 1_000,
-  ];
+  return [timestamp, counter];
 };
