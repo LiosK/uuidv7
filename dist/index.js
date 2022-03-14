@@ -16,21 +16,12 @@ const crypto_1 = require("crypto");
  * ("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
  */
 const uuidv7 = () => {
-    const [timestamp, counter] = getTimestampAndCounter();
-    return (hex(Math.trunc(timestamp / 65536), 8) +
-        "-" +
-        hex(timestamp % 65536, 4) +
-        "-" +
-        hex(0x7000 | (counter >>> 14), 4) +
-        "-" +
-        hex(0x8000 | (counter & 0x3fff), 4) +
-        "-" +
-        hex(rand(48), 12));
+    return generateV7().toString();
 };
 exports.uuidv7 = uuidv7;
-/** Formats a safe unsigned integer as `k`-digit hexadecimal string. */
-const hex = (safeUint, k) => {
-    return ("0000000000000" + safeUint.toString(16)).slice(-k);
+const generateV7 = () => {
+    const [timestamp, counter] = getTimestampAndCounter();
+    return UUID.fromWords(Math.trunc(timestamp / 65536), (timestamp % 65536) * 65536 + (0x7000 | (counter >>> 14)), (0x8000 | (counter & 0x3fff)) * 65536 + rand(16), rand(32));
 };
 /** Returns a `k`-bit unsigned random integer. */
 const rand = (() => {
@@ -84,3 +75,52 @@ const getTimestampAndCounter = () => {
     }
     return [timestamp, counter];
 };
+const DIGITS = "0123456789abcdefghijklmnopqrstuvwxyz";
+class UUID {
+    constructor(words) {
+        this.words = words;
+        if (words.length !== 4) {
+            throw new TypeError("words is not 128-bit length");
+        }
+    }
+    static fromWords(w0, w1, w2, w3) {
+        return new UUID(Uint32Array.of(w0, w1, w2, w3));
+    }
+    toString() {
+        const ds = this.convertRadix(this.words, new Uint8Array(32), Math.pow(2, 32), 16);
+        let text = "";
+        for (let i = 0; i < ds.length; i++) {
+            text += DIGITS.charAt(ds[i]);
+            if (i === 7 || i === 11 || i === 15 || i === 19) {
+                text += "-";
+            }
+        }
+        return text;
+    }
+    toBase36String() {
+        const ds = this.convertRadix(this.words, new Uint8Array(25), Math.pow(2, 32), 36);
+        let text = "";
+        for (let i = 0; i < ds.length; i++) {
+            text += DIGITS.charAt(ds[i]);
+        }
+        return text;
+    }
+    /** Converts a digit value array in `srcRadix` to that in `dstRadix`. */
+    convertRadix(src, dst, srcRadix, dstRadix) {
+        let dstUsed = dst.length - 1;
+        for (let carry of src) {
+            // Iterate over dst from right while carry != 0 or up to place already used
+            let i = dst.length - 1;
+            for (; carry > 0 || i >= dstUsed; i--) {
+                if (i < 0) {
+                    throw new TypeError("dst.length is too short");
+                }
+                carry += dst[i] * srcRadix;
+                dst[i] = carry % dstRadix;
+                carry = Math.trunc(carry / dstRadix);
+            }
+            dstUsed = i + 1;
+        }
+        return dst;
+    }
+}

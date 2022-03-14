@@ -15,24 +15,17 @@ import { randomFillSync } from "crypto";
  * ("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
  */
 export const uuidv7 = (): string => {
-  const [timestamp, counter] = getTimestampAndCounter();
-
-  return (
-    hex(Math.trunc(timestamp / 0x1_0000), 8) +
-    "-" +
-    hex(timestamp % 0x1_0000, 4) +
-    "-" +
-    hex(0x7000 | (counter >>> 14), 4) +
-    "-" +
-    hex(0x8000 | (counter & 0x3fff), 4) +
-    "-" +
-    hex(rand(48), 12)
-  );
+  return generateV7().toString();
 };
 
-/** Formats a safe unsigned integer as `k`-digit hexadecimal string. */
-const hex = (safeUint: number, k: number): string => {
-  return ("0000000000000" + safeUint.toString(16)).slice(-k);
+const generateV7 = (): UUID => {
+  const [timestamp, counter] = getTimestampAndCounter();
+  return UUID.fromWords(
+    Math.trunc(timestamp / 0x1_0000),
+    (timestamp % 0x1_0000) * 0x1_0000 + (0x7000 | (counter >>> 14)),
+    (0x8000 | (counter & 0x3fff)) * 0x1_0000 + rand(16),
+    rand(32)
+  );
 };
 
 /** Returns a `k`-bit unsigned random integer. */
@@ -89,3 +82,62 @@ const getTimestampAndCounter = (): [number, number] => {
 
   return [timestamp, counter];
 };
+
+const DIGITS = "0123456789abcdefghijklmnopqrstuvwxyz";
+
+class UUID {
+  private constructor(private readonly words: Uint32Array) {
+    if (words.length !== 4) {
+      throw new TypeError("words is not 128-bit length");
+    }
+  }
+
+  static fromWords(w0: number, w1: number, w2: number, w3: number): UUID {
+    return new UUID(Uint32Array.of(w0, w1, w2, w3));
+  }
+
+  toString(): string {
+    const ds = this.convertRadix(this.words, new Uint8Array(32), 2 ** 32, 16);
+    let text = "";
+    for (let i = 0; i < ds.length; i++) {
+      text += DIGITS.charAt(ds[i]);
+      if (i === 7 || i === 11 || i === 15 || i === 19) {
+        text += "-";
+      }
+    }
+    return text;
+  }
+
+  toBase36String(): string {
+    const ds = this.convertRadix(this.words, new Uint8Array(25), 2 ** 32, 36);
+    let text = "";
+    for (let i = 0; i < ds.length; i++) {
+      text += DIGITS.charAt(ds[i]);
+    }
+    return text;
+  }
+
+  /** Converts a digit value array in `srcRadix` to that in `dstRadix`. */
+  private convertRadix<T extends Uint8Array | Uint32Array>(
+    src: Uint8Array | Uint32Array,
+    dst: T,
+    srcRadix: number,
+    dstRadix: number
+  ): T {
+    let dstUsed = dst.length - 1;
+    for (let carry of src) {
+      // Iterate over dst from right while carry != 0 or up to place already used
+      let i = dst.length - 1;
+      for (; carry > 0 || i >= dstUsed; i--) {
+        if (i < 0) {
+          throw new TypeError("dst.length is too short");
+        }
+        carry += dst[i] * srcRadix;
+        dst[i] = carry % dstRadix;
+        carry = Math.trunc(carry / dstRadix);
+      }
+      dstUsed = i + 1;
+    }
+    return dst;
+  }
+}
