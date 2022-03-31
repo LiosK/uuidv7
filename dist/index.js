@@ -6,9 +6,93 @@
  * @copyright 2021-2022 LiosK
  * @packageDocumentation
  */
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.uuidv7 = void 0;
-const crypto_1 = require("crypto");
+const nodeCrypto = __importStar(require("crypto"));
+const DIGITS = "0123456789abcdef";
+class UUID {
+    constructor(bytes) {
+        this.bytes = bytes;
+        if (bytes.length !== 16) {
+            throw new TypeError("not 128-bit length");
+        }
+    }
+    /**
+     *  @param unixTsMs - 48 bits
+     *  @param randA - 12 bits
+     *  @param randBHi - 30 bits
+     *  @param randBLo - 32 bits
+     */
+    static fromFieldsV7(unixTsMs, randA, randBHi, randBLo) {
+        if (!Number.isInteger(unixTsMs) ||
+            !Number.isInteger(randA) ||
+            !Number.isInteger(randBHi) ||
+            !Number.isInteger(randBLo) ||
+            unixTsMs < 0 ||
+            randA < 0 ||
+            randBHi < 0 ||
+            randBLo < 0 ||
+            unixTsMs > 281474976710655 ||
+            randA > 0xfff ||
+            randBHi > 1073741823 ||
+            randBLo > 4294967295) {
+            throw new RangeError("invalid field value");
+        }
+        const bytes = new Uint8Array(16);
+        bytes[0] = unixTsMs / Math.pow(2, 40);
+        bytes[1] = unixTsMs / Math.pow(2, 32);
+        bytes[2] = unixTsMs / Math.pow(2, 24);
+        bytes[3] = unixTsMs / Math.pow(2, 16);
+        bytes[4] = unixTsMs / Math.pow(2, 8);
+        bytes[5] = unixTsMs;
+        bytes[6] = 0x70 | (randA >>> 8);
+        bytes[7] = randA;
+        bytes[8] = 0x80 | (randBHi >>> 24);
+        bytes[9] = randBHi >>> 16;
+        bytes[10] = randBHi >>> 8;
+        bytes[11] = randBHi;
+        bytes[12] = randBLo >>> 24;
+        bytes[13] = randBLo >>> 16;
+        bytes[14] = randBLo >>> 8;
+        bytes[15] = randBLo;
+        return new UUID(bytes);
+    }
+    /** @returns 8-4-4-4-12 hexadecimal string representation. */
+    toString() {
+        let text = "";
+        for (let i = 0; i < this.bytes.length; i++) {
+            text += DIGITS.charAt(this.bytes[i] >>> 4);
+            text += DIGITS.charAt(this.bytes[i] & 0xf);
+            if (i === 3 || i === 5 || i === 7 || i === 9) {
+                text += "-";
+            }
+        }
+        return text;
+    }
+}
 /**
  * Generates a UUIDv7 hexadecimal string.
  *
@@ -21,22 +105,22 @@ const uuidv7 = () => {
 exports.uuidv7 = uuidv7;
 const generateV7 = () => {
     const [timestamp, counter] = getTimestampAndCounter();
-    return UUID.fromWords(Math.trunc(timestamp / 65536), (timestamp % 65536) * 65536 + (0x7000 | (counter >>> 14)), (0x8000 | (counter & 0x3fff)) * 65536 + rand(16), rand(32));
+    return UUID.fromFieldsV7(timestamp, counter >>> 14, ((counter & 0x3fff) << 16) | rand(16), rand(32));
 };
 /** Returns a `k`-bit unsigned random integer. */
 const rand = (() => {
     // detect CSPRNG
-    if (typeof window !== "undefined" && window.crypto) {
-        // Web Crypto API on browsers
+    if (typeof crypto !== "undefined" && crypto.getRandomValues) {
+        // Web Crypto API
         return (k) => {
-            const [hi, lo] = window.crypto.getRandomValues(new Uint32Array(2));
+            const [hi, lo] = crypto.getRandomValues(new Uint32Array(2));
             return k > 32 ? (hi % Math.pow(2, (k - 32))) * Math.pow(2, 32) + lo : lo % Math.pow(2, k);
         };
     }
-    else if (crypto_1.randomFillSync) {
+    else if (nodeCrypto && nodeCrypto.randomFillSync) {
         // Node.js Crypto
         return (k) => {
-            const [hi, lo] = (0, crypto_1.randomFillSync)(new Uint32Array(2));
+            const [hi, lo] = nodeCrypto.randomFillSync(new Uint32Array(2));
             return k > 32 ? (hi % Math.pow(2, (k - 32))) * Math.pow(2, 32) + lo : lo % Math.pow(2, k);
         };
     }
@@ -75,52 +159,3 @@ const getTimestampAndCounter = () => {
     }
     return [timestamp, counter];
 };
-const DIGITS = "0123456789abcdefghijklmnopqrstuvwxyz";
-class UUID {
-    constructor(words) {
-        this.words = words;
-        if (words.length !== 4) {
-            throw new TypeError("words is not 128-bit length");
-        }
-    }
-    static fromWords(w0, w1, w2, w3) {
-        return new UUID(Uint32Array.of(w0, w1, w2, w3));
-    }
-    toString() {
-        const ds = this.convertRadix(this.words, new Uint8Array(32), Math.pow(2, 32), 16);
-        let text = "";
-        for (let i = 0; i < ds.length; i++) {
-            text += DIGITS.charAt(ds[i]);
-            if (i === 7 || i === 11 || i === 15 || i === 19) {
-                text += "-";
-            }
-        }
-        return text;
-    }
-    toBase36String() {
-        const ds = this.convertRadix(this.words, new Uint8Array(25), Math.pow(2, 32), 36);
-        let text = "";
-        for (let i = 0; i < ds.length; i++) {
-            text += DIGITS.charAt(ds[i]);
-        }
-        return text;
-    }
-    /** Converts a digit value array in `srcRadix` to that in `dstRadix`. */
-    convertRadix(src, dst, srcRadix, dstRadix) {
-        let dstUsed = dst.length - 1;
-        for (let carry of src) {
-            // Iterate over dst from right while carry != 0 or up to place already used
-            let i = dst.length - 1;
-            for (; carry > 0 || i >= dstUsed; i--) {
-                if (i < 0) {
-                    throw new TypeError("dst.length is too short");
-                }
-                carry += dst[i] * srcRadix;
-                dst[i] = carry % dstRadix;
-                carry = Math.trunc(carry / dstRadix);
-            }
-            dstUsed = i + 1;
-        }
-        return dst;
-    }
-}
