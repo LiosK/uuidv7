@@ -8,10 +8,10 @@ An experimental implementation of the proposed UUID Version 7
 ```javascript
 import { uuidv7 } from "uuidv7";
 
-const result = uuidv7(); // e.g. "0619786f-54be-78f3-9a02-b3376dac11d7"
+const result = uuidv7(); // e.g. "017fe250-610a-77d7-aca2-324d29c92b45"
 ```
 
-See [draft-peabody-dispatch-new-uuid-format-02](https://www.ietf.org/archive/id/draft-peabody-dispatch-new-uuid-format-02.html).
+See [draft-peabody-dispatch-new-uuid-format-03](https://www.ietf.org/archive/id/draft-peabody-dispatch-new-uuid-format-03.html).
 
 ## Field and bit layout
 
