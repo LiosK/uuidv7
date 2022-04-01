@@ -8,7 +8,21 @@ An experimental implementation of the proposed UUID Version 7
 ```javascript
 import { uuidv7 } from "uuidv7";
 
-const result = uuidv7(); // e.g. "017fe250-610a-77d7-aca2-324d29c92b45"
+const result = uuidv7(); // e.g. "017fe537-bb13-7c35-b52a-cb5490cce7be"
+```
+
+On browsers and Deno:
+
+```javascript
+import { uuidv7 } from "https://unpkg.com/uuidv7";
+
+const result = uuidv7(); // e.g. "017fe537-bb13-7c35-b52a-cb5490cce7be"
+```
+
+Command-line:
+
+```bash
+npx uuidv7
 ```
 
 See [draft-peabody-dispatch-new-uuid-format-03](https://www.ietf.org/archive/id/draft-peabody-dispatch-new-uuid-format-03.html).
