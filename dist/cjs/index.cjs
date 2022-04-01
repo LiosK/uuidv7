@@ -1,3 +1,4 @@
+"use strict";
 /**
  * uuidv7: An experimental implementation of the proposed UUID Version 7
  *
@@ -5,6 +6,8 @@
  * @copyright 2021-2022 LiosK
  * @packageDocumentation
  */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.uuidv7 = exports._setRandom = void 0;
 const DIGITS = "0123456789abcdef";
 /** Represents a UUID as a 16-byte byte array. */
 class UUID {
@@ -116,9 +119,10 @@ if (typeof crypto !== "undefined" && crypto.getRandomValues) {
     getRandomValues = (buffer) => crypto.getRandomValues(buffer);
 }
 /** @internal */
-export const _setRandom = (rand) => {
+const _setRandom = (rand) => {
     getRandomValues = rand;
 };
+exports._setRandom = _setRandom;
 /**
  * Wraps `crypto.getRandomValues()` and compatibles to enable buffering; this
  * uses a small buffer by default to avoid unbearable throughput decline in some
@@ -144,8 +148,9 @@ let defaultGenerator;
  * @returns 8-4-4-4-12 hexadecimal string representation
  * ("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx").
  */
-export const uuidv7 = () => {
+const uuidv7 = () => {
     return (defaultGenerator || (defaultGenerator = new V7Generator()))
         .generate()
         .toString();
 };
+exports.uuidv7 = uuidv7;
