@@ -6,8 +6,6 @@
  * @packageDocumentation
  */
 
-import * as nodeCrypto from "crypto";
-
 const DIGITS = "0123456789abcdef";
 
 /** Represents a UUID as a 16-byte byte array. */
@@ -88,15 +86,18 @@ class UUID {
 class V7Generator {
   private timestamp = 0;
   private counter = 0;
+  private readonly random = new DefaultRandom();
 
   generate(): UUID {
     const ts = Date.now();
     if (ts > this.timestamp) {
       this.timestamp = ts;
-      this.counter = rand(42);
+      // initialize counter at 42-bit random integer
+      this.counter =
+        this.random.nextUint32() * 0x400 + (this.random.nextUint32() & 0x3ff);
     } else {
       this.counter++;
-      if (this.counter > 2 ** 42 - 1) {
+      if (this.counter > 0x3ff_ffff_ffff) {
         // counter overflowing; will wait for next clock tick
         for (let i = 0; i < 1_000_000; i++) {
           if (Date.now() > this.timestamp) {
@@ -113,12 +114,49 @@ class V7Generator {
       this.timestamp,
       Math.trunc(this.counter / 2 ** 30),
       this.counter & (2 ** 30 - 1),
-      rand(32)
+      this.random.nextUint32()
     );
   }
 }
 
-const defaultGenerator = new V7Generator();
+/** Stores `crypto.getRandomValues()` available in the environment. */
+let getRandomValues: (buffer: Uint32Array) => Uint32Array = (buffer) => {
+  for (let i = 0; i < buffer.length; i++) {
+    buffer[i] =
+      Math.trunc(Math.random() * 0x1_0000) * 0x1_0000 +
+      Math.trunc(Math.random() * 0x1_0000);
+  }
+  return buffer;
+};
+
+// detect Web Crypto API
+if (typeof crypto !== "undefined" && crypto.getRandomValues) {
+  getRandomValues = (buffer) => crypto.getRandomValues(buffer);
+}
+
+/** @internal */
+export const _setRandom = (rand: (buffer: Uint32Array) => Uint32Array) => {
+  getRandomValues = rand;
+};
+
+/**
+ * Wraps `crypto.getRandomValues()` and compatibles to enable buffering; this
+ * uses a small buffer by default to avoid unbearable throughput decline in some
+ * environments as well as the waste of time and space for unused values.
+ */
+class DefaultRandom {
+  private readonly buffer = new Uint32Array(8);
+  private cursor = Infinity;
+  nextUint32(): number {
+    if (this.cursor >= this.buffer.length) {
+      getRandomValues(this.buffer);
+      this.cursor = 0;
+    }
+    return this.buffer[this.cursor++];
+  }
+}
+
+let defaultGenerator: V7Generator | undefined;
 
 /**
  * Generates a UUIDv7 hexadecimal string.
@@ -127,29 +165,7 @@ const defaultGenerator = new V7Generator();
  * ("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx").
  */
 export const uuidv7 = (): string => {
-  return defaultGenerator.generate().toString();
+  return (defaultGenerator || (defaultGenerator = new V7Generator()))
+    .generate()
+    .toString();
 };
-
-/** Returns a `k`-bit unsigned random integer. */
-const rand: (k: number) => number = (() => {
-  // detect CSPRNG
-  if (typeof crypto !== "undefined" && crypto.getRandomValues) {
-    // Web Crypto API
-    return (k: number) => {
-      const [hi, lo] = crypto.getRandomValues(new Uint32Array(2));
-      return k > 32 ? (hi % 2 ** (k - 32)) * 2 ** 32 + lo : lo % 2 ** k;
-    };
-  } else if (nodeCrypto && nodeCrypto.randomFillSync) {
-    // Node.js Crypto
-    return (k: number) => {
-      const [hi, lo] = nodeCrypto.randomFillSync(new Uint32Array(2));
-      return k > 32 ? (hi % 2 ** (k - 32)) * 2 ** 32 + lo : lo % 2 ** k;
-    };
-  } else {
-    return (k: number) =>
-      k > 30
-        ? Math.floor(Math.random() * (1 << (k - 30))) * (1 << 30) +
-          Math.floor(Math.random() * (1 << 30))
-        : Math.floor(Math.random() * (1 << k));
-  }
-})();

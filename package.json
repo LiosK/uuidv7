@@ -2,25 +2,32 @@
   "name": "uuidv7",
   "version": "0.2.0",
   "description": "An experimental implementation of the proposed UUID Version 7",
+  "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    "import": "./alt/esm.mjs",
-    "require": "./dist/index.js"
+    "node": {
+      "require": "./dist/cjs/node.cjs",
+      "default": "./dist/node.js"
+    },
+    "require": "./dist/cjs/index.cjs",
+    "default": "./dist/index.js"
   },
   "bin": {
-    "uuidv7": "./alt/cli.cjs"
+    "uuidv7": "./cli.js"
   },
   "files": [
-    "alt",
     "dist"
   ],
-  "sideEffects": false,
+  "sideEffects": [
+    "./dist/cjs/node.cjs",
+    "./dist/node.js"
+  ],
   "browser": {
     "crypto": false
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && tsc -p ./tsconfig.cjs.json",
     "bundle_test": "webpack ./test/*.mjs -o ./test/bundle --mode production",
     "clean": "rm -rf ./dist ./test/bundle",
     "prepare": "npm run clean && npm run build && npm run bundle_test && npm test",
