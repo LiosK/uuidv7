@@ -25,7 +25,7 @@ This implementation produces identifiers with the following bit layout:
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |          unix_ts_ms           |  ver  |        counter        |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|var|          counter          |             rand              |
+|var|                        counter                            |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                             rand                              |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -36,12 +36,12 @@ Where:
 - The 48-bit `unix_ts_ms` field is dedicated to the Unix timestamp in
   milliseconds.
 - The 4-bit `ver` field is set at `0111`.
-- The 26-bit `counter` field accommodates the sequence counter that ensures the
+- The 42-bit `counter` field accommodates the sequence counter that ensures the
   monotonic order of IDs generated within the same millisecond. The counter is
   incremented by one for each new ID generated within the same timestamp and is
   randomly initialized whenever the timestamp changes.
 - The 2-bit `var` field is set at `10`.
-- The remaining 48 `rand` bits are filled with a cryptographically strong random
+- The remaining 32 `rand` bits are filled with a cryptographically strong random
   number.
 
 ## License

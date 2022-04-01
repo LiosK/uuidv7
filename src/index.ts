@@ -6,11 +6,11 @@
  * @packageDocumentation
  */
 
-import * as nodeCrypto from "crypto";
-
 const DIGITS = "0123456789abcdef";
 
+/** Represents a UUID as a 16-byte byte array. */
 class UUID {
+  /** @param bytes - 16-byte byte array */
   constructor(readonly bytes: Uint8Array) {
     if (bytes.length !== 16) {
       throw new TypeError("not 128-bit length");
@@ -18,10 +18,12 @@ class UUID {
   }
 
   /**
-   *  @param unixTsMs - 48 bits
-   *  @param randA - 12 bits
-   *  @param randBHi - 30 bits
-   *  @param randBLo - 32 bits
+   * Builds a byte array from UUIDv7 field values.
+   *
+   * @param unixTsMs - 48-bit `unix_ts_ms` field.
+   * @param randA - 12-bit `rand_a` field.
+   * @param randBHi - Higher 30 bits of 62-bit `rand_b` field.
+   * @param randBLo - Lower 32 bits of 62-bit `rand_b` field.
    */
   static fromFieldsV7(
     unixTsMs: number,
@@ -80,77 +82,90 @@ class UUID {
   }
 }
 
+/** Encapsulates the monotonic counter state. */
+class V7Generator {
+  private timestamp = 0;
+  private counter = 0;
+  private readonly random = new DefaultRandom();
+
+  generate(): UUID {
+    const ts = Date.now();
+    if (ts > this.timestamp) {
+      this.timestamp = ts;
+      // initialize counter at 42-bit random integer
+      this.counter =
+        this.random.nextUint32() * 0x400 + (this.random.nextUint32() & 0x3ff);
+    } else {
+      this.counter++;
+      if (this.counter > 0x3ff_ffff_ffff) {
+        // counter overflowing; will wait for next clock tick
+        for (let i = 0; i < 1_000_000; i++) {
+          if (Date.now() > this.timestamp) {
+            return this.generate();
+          }
+        }
+        // reset state as clock did not move for a while
+        this.timestamp = 0;
+        return this.generate();
+      }
+    }
+
+    return UUID.fromFieldsV7(
+      this.timestamp,
+      Math.trunc(this.counter / 2 ** 30),
+      this.counter & (2 ** 30 - 1),
+      this.random.nextUint32()
+    );
+  }
+}
+
+/** Stores `crypto.getRandomValues()` available in the environment. */
+let getRandomValues: (buffer: Uint32Array) => Uint32Array = (buffer) => {
+  for (let i = 0; i < buffer.length; i++) {
+    buffer[i] =
+      Math.trunc(Math.random() * 0x1_0000) * 0x1_0000 +
+      Math.trunc(Math.random() * 0x1_0000);
+  }
+  return buffer;
+};
+
+// detect Web Crypto API
+if (typeof crypto !== "undefined" && crypto.getRandomValues) {
+  getRandomValues = (buffer) => crypto.getRandomValues(buffer);
+}
+
+/** @internal */
+export const _setRandom = (rand: (buffer: Uint32Array) => Uint32Array) => {
+  getRandomValues = rand;
+};
+
+/**
+ * Wraps `crypto.getRandomValues()` and compatibles to enable buffering; this
+ * uses a small buffer by default to avoid unbearable throughput decline in some
+ * environments as well as the waste of time and space for unused values.
+ */
+class DefaultRandom {
+  private readonly buffer = new Uint32Array(8);
+  private cursor = Infinity;
+  nextUint32(): number {
+    if (this.cursor >= this.buffer.length) {
+      getRandomValues(this.buffer);
+      this.cursor = 0;
+    }
+    return this.buffer[this.cursor++];
+  }
+}
+
+let defaultGenerator: V7Generator | undefined;
+
 /**
  * Generates a UUIDv7 hexadecimal string.
  *
  * @returns 8-4-4-4-12 hexadecimal string representation
- * ("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
+ * ("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx").
  */
 export const uuidv7 = (): string => {
-  return generateV7().toString();
-};
-
-const generateV7 = (): UUID => {
-  const [timestamp, counter] = getTimestampAndCounter();
-  return UUID.fromFieldsV7(
-    timestamp,
-    counter >>> 14,
-    ((counter & 0x3fff) << 16) | rand(16),
-    rand(32)
-  );
-};
-
-/** Returns a `k`-bit unsigned random integer. */
-const rand: (k: number) => number = (() => {
-  // detect CSPRNG
-  if (typeof crypto !== "undefined" && crypto.getRandomValues) {
-    // Web Crypto API
-    return (k: number) => {
-      const [hi, lo] = crypto.getRandomValues(new Uint32Array(2));
-      return k > 32 ? (hi % 2 ** (k - 32)) * 2 ** 32 + lo : lo % 2 ** k;
-    };
-  } else if (nodeCrypto && nodeCrypto.randomFillSync) {
-    // Node.js Crypto
-    return (k: number) => {
-      const [hi, lo] = nodeCrypto.randomFillSync(new Uint32Array(2));
-      return k > 32 ? (hi % 2 ** (k - 32)) * 2 ** 32 + lo : lo % 2 ** k;
-    };
-  } else {
-    return (k: number) =>
-      k > 30
-        ? Math.floor(Math.random() * (1 << (k - 30))) * (1 << 30) +
-          Math.floor(Math.random() * (1 << 30))
-        : Math.floor(Math.random() * (1 << k));
-  }
-})();
-
-/** Millisecond timestamp at last generation. */
-let timestamp = 0;
-
-/** Counter value at last generation. */
-let counter = 0;
-
-/**
- * Returns the current unix time in milliseconds and the counter value.
- *
- * @return [timestamp, counter]
- */
-const getTimestampAndCounter = (): [number, number] => {
-  let now = Date.now();
-  if (timestamp < now) {
-    timestamp = now;
-    counter = rand(26);
-  } else {
-    counter++;
-    if (counter > 0x3ff_ffff) {
-      // wait a moment until clock moves; reset state and continue otherwise
-      for (let i = 0; timestamp >= now && i < 1_000_000; i++) {
-        now = Date.now();
-      }
-      timestamp = now;
-      counter = rand(26);
-    }
-  }
-
-  return [timestamp, counter];
+  return (defaultGenerator || (defaultGenerator = new V7Generator()))
+    .generate()
+    .toString();
 };

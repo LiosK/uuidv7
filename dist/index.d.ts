@@ -9,6 +9,6 @@
  * Generates a UUIDv7 hexadecimal string.
  *
  * @returns 8-4-4-4-12 hexadecimal string representation
- * ("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
+ * ("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx").
  */
 export declare const uuidv7: () => string;
