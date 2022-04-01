@@ -10,7 +10,9 @@ import * as nodeCrypto from "crypto";
 
 const DIGITS = "0123456789abcdef";
 
+/** Represents a UUID as a 16-byte byte array. */
 class UUID {
+  /** @param bytes - 16-byte byte array */
   constructor(readonly bytes: Uint8Array) {
     if (bytes.length !== 16) {
       throw new TypeError("not 128-bit length");
@@ -18,10 +20,12 @@ class UUID {
   }
 
   /**
-   *  @param unixTsMs - 48 bits
-   *  @param randA - 12 bits
-   *  @param randBHi - 30 bits
-   *  @param randBLo - 32 bits
+   * Builds a byte array from UUIDv7 field values.
+   *
+   * @param unixTsMs - 48-bit `unix_ts_ms` field.
+   * @param randA - 12-bit `rand_a` field.
+   * @param randBHi - Higher 30 bits of 62-bit `rand_b` field.
+   * @param randBLo - Lower 32 bits of 62-bit `rand_b` field.
    */
   static fromFieldsV7(
     unixTsMs: number,
@@ -80,24 +84,50 @@ class UUID {
   }
 }
 
+/** Encapsulates the monotonic counter state. */
+class V7Generator {
+  private timestamp = 0;
+  private counter = 0;
+
+  generate(): UUID {
+    const ts = Date.now();
+    if (ts > this.timestamp) {
+      this.timestamp = ts;
+      this.counter = rand(42);
+    } else {
+      this.counter++;
+      if (this.counter > 2 ** 42 - 1) {
+        // counter overflowing; will wait for next clock tick
+        for (let i = 0; i < 1_000_000; i++) {
+          if (Date.now() > this.timestamp) {
+            return this.generate();
+          }
+        }
+        // reset state as clock did not move for a while
+        this.timestamp = 0;
+        return this.generate();
+      }
+    }
+
+    return UUID.fromFieldsV7(
+      this.timestamp,
+      Math.trunc(this.counter / 2 ** 30),
+      this.counter & (2 ** 30 - 1),
+      rand(32)
+    );
+  }
+}
+
+const defaultGenerator = new V7Generator();
+
 /**
  * Generates a UUIDv7 hexadecimal string.
  *
  * @returns 8-4-4-4-12 hexadecimal string representation
- * ("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
+ * ("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx").
  */
 export const uuidv7 = (): string => {
-  return generateV7().toString();
-};
-
-const generateV7 = (): UUID => {
-  const [timestamp, counter] = getTimestampAndCounter();
-  return UUID.fromFieldsV7(
-    timestamp,
-    counter >>> 14,
-    ((counter & 0x3fff) << 16) | rand(16),
-    rand(32)
-  );
+  return defaultGenerator.generate().toString();
 };
 
 /** Returns a `k`-bit unsigned random integer. */
@@ -123,34 +153,3 @@ const rand: (k: number) => number = (() => {
         : Math.floor(Math.random() * (1 << k));
   }
 })();
-
-/** Millisecond timestamp at last generation. */
-let timestamp = 0;
-
-/** Counter value at last generation. */
-let counter = 0;
-
-/**
- * Returns the current unix time in milliseconds and the counter value.
- *
- * @return [timestamp, counter]
- */
-const getTimestampAndCounter = (): [number, number] => {
-  let now = Date.now();
-  if (timestamp < now) {
-    timestamp = now;
-    counter = rand(26);
-  } else {
-    counter++;
-    if (counter > 0x3ff_ffff) {
-      // wait a moment until clock moves; reset state and continue otherwise
-      for (let i = 0; timestamp >= now && i < 1_000_000; i++) {
-        now = Date.now();
-      }
-      timestamp = now;
-      counter = rand(26);
-    }
-  }
-
-  return [timestamp, counter];
-};
