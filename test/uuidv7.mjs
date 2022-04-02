@@ -1,4 +1,4 @@
-import { uuidv7 } from "uuidv7";
+import { UUID, uuidv7, uuidv7obj } from "uuidv7";
 const assert = (expression, message = "") => {
   if (!expression) {
     throw new Error("Assertion failed" + (message ? ": " + message : ""));
@@ -92,5 +92,28 @@ describe("uuidv7()", function () {
       const p = bins[i] / n;
       assert(Math.abs(p - 0.5) < margin, `random bit ${i}: ${p}`);
     }
+  });
+});
+
+describe("uuidv7obj()", function () {
+  const samples = [];
+  for (let i = 0; i < 1_000; i++) {
+    samples[i] = uuidv7obj();
+  }
+
+  it("returns object with 16-byte byte array property", function () {
+    samples.forEach((e) =>
+      assert(
+        e instanceof UUID &&
+          e.bytes instanceof Uint8Array &&
+          e.bytes.length === 16
+      )
+    );
+  });
+
+  it("returns object with toString() that returns 8-4-4-4-12", function () {
+    const re =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+    samples.forEach((e) => assert(re.test(String(e))));
   });
 });

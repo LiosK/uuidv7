@@ -9,7 +9,7 @@
 const DIGITS = "0123456789abcdef";
 
 /** Represents a UUID as a 16-byte byte array. */
-class UUID {
+export class UUID {
   /** @param bytes - 16-byte byte array */
   constructor(readonly bytes: Uint8Array) {
     if (bytes.length !== 16) {
@@ -179,7 +179,7 @@ let defaultGenerator: V7Generator | undefined;
 export const uuidv7 = (): string => uuidv7obj().toString();
 
 /** Generates a UUIDv7 object. */
-const uuidv7obj = (): UUID =>
+export const uuidv7obj = (): UUID =>
   (defaultGenerator || (defaultGenerator = new V7Generator())).generate();
 
 /**
@@ -191,7 +191,7 @@ const uuidv7obj = (): UUID =>
 export const uuidv4 = (): string => uuidv4obj().toString();
 
 /** Generates a UUIDv4 object. */
-const uuidv4obj = (): UUID => {
+export const uuidv4obj = (): UUID => {
   const bytes = getRandomValues(new Uint8Array(16));
   bytes[6] = 0x40 | (bytes[6] >>> 4);
   bytes[8] = 0x80 | (bytes[8] >>> 2);

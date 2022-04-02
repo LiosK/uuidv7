@@ -74,6 +74,17 @@ import { uuidv4 } from "uuidv7";
 const result = uuidv4(); // e.g. "83229083-75c3-4da5-8378-f88ef1a2bcd1"
 ```
 
+`uuidv7obj()` and `uuidv4obj()` return an object that represents a UUID as a
+16-byte byte array:
+
+```javascript
+import { uuidv7obj } from "uuidv7";
+
+const object = uuidv7obj();
+console.log(object.bytes); // Uint8Array(16) [ ... ]
+console.log(String(object)); // e.g. "017fea6b-b877-7aef-b422-57db9ed15e9d"
+```
+
 CommonJS entry points are available as well but are provided solely for backward
 compatibility.
 
