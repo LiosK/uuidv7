@@ -9,7 +9,7 @@
 const DIGITS = "0123456789abcdef";
 
 /** Represents a UUID as a 16-byte byte array. */
-class UUID {
+export class UUID {
   /** @param bytes - 16-byte byte array */
   constructor(readonly bytes: Uint8Array) {
     if (bytes.length !== 16) {
@@ -68,7 +68,7 @@ class UUID {
     return new UUID(bytes);
   }
 
-  /** @returns 8-4-4-4-12 hexadecimal string representation. */
+  /** @returns 8-4-4-4-12 canonical hexadecimal string representation. */
   toString(): string {
     let text = "";
     for (let i = 0; i < this.bytes.length; i++) {
@@ -119,8 +119,18 @@ class V7Generator {
   }
 }
 
+/** A global flag to force use of cryptographically strong RNG. */
+declare const UUIDV7_DENY_WEAK_RNG: boolean;
+
 /** Stores `crypto.getRandomValues()` available in the environment. */
-let getRandomValues: (buffer: Uint32Array) => Uint32Array = (buffer) => {
+let getRandomValues: <T extends Uint8Array | Uint32Array>(buffer: T) => T = (
+  buffer
+) => {
+  // fall back on Math.random() unless the flag is set to true
+  if (typeof UUIDV7_DENY_WEAK_RNG !== "undefined" && UUIDV7_DENY_WEAK_RNG) {
+    throw new Error("no cryptographically strong RNG available");
+  }
+
   for (let i = 0; i < buffer.length; i++) {
     buffer[i] =
       Math.trunc(Math.random() * 0x1_0000) * 0x1_0000 +
@@ -135,7 +145,9 @@ if (typeof crypto !== "undefined" && crypto.getRandomValues) {
 }
 
 /** @internal */
-export const _setRandom = (rand: (buffer: Uint32Array) => Uint32Array) => {
+export const _setRandom = (
+  rand: <T extends Uint8Array | Uint16Array | Uint32Array>(buffer: T) => T
+) => {
   getRandomValues = rand;
 };
 
@@ -159,13 +171,29 @@ class DefaultRandom {
 let defaultGenerator: V7Generator | undefined;
 
 /**
- * Generates a UUIDv7 hexadecimal string.
+ * Generates a UUIDv7 string.
  *
- * @returns 8-4-4-4-12 hexadecimal string representation
+ * @returns 8-4-4-4-12 canonical hexadecimal string representation
  * ("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx").
  */
-export const uuidv7 = (): string => {
-  return (defaultGenerator || (defaultGenerator = new V7Generator()))
-    .generate()
-    .toString();
+export const uuidv7 = (): string => uuidv7obj().toString();
+
+/** Generates a UUIDv7 object. */
+export const uuidv7obj = (): UUID =>
+  (defaultGenerator || (defaultGenerator = new V7Generator())).generate();
+
+/**
+ * Generates a UUIDv4 string.
+ *
+ * @returns 8-4-4-4-12 canonical hexadecimal string representation
+ * ("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx").
+ */
+export const uuidv4 = (): string => uuidv4obj().toString();
+
+/** Generates a UUIDv4 object. */
+export const uuidv4obj = (): UUID => {
+  const bytes = getRandomValues(new Uint8Array(16));
+  bytes[6] = 0x40 | (bytes[6] >>> 4);
+  bytes[8] = 0x80 | (bytes[8] >>> 2);
+  return new UUID(bytes);
 };
