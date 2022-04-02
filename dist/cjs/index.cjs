@@ -7,7 +7,7 @@
  * @packageDocumentation
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.uuidv7 = exports._setRandom = void 0;
+exports.uuidv4obj = exports.uuidv4 = exports.uuidv7obj = exports.uuidv7 = exports._setRandom = exports.UUID = void 0;
 const DIGITS = "0123456789abcdef";
 /** Represents a UUID as a 16-byte byte array. */
 class UUID {
@@ -60,7 +60,7 @@ class UUID {
         bytes[15] = randBLo;
         return new UUID(bytes);
     }
-    /** @returns 8-4-4-4-12 hexadecimal string representation. */
+    /** @returns 8-4-4-4-12 canonical hexadecimal string representation. */
     toString() {
         let text = "";
         for (let i = 0; i < this.bytes.length; i++) {
@@ -73,6 +73,7 @@ class UUID {
         return text;
     }
 }
+exports.UUID = UUID;
 /** Encapsulates the monotonic counter state. */
 class V7Generator {
     constructor() {
@@ -107,6 +108,10 @@ class V7Generator {
 }
 /** Stores `crypto.getRandomValues()` available in the environment. */
 let getRandomValues = (buffer) => {
+    // fall back on Math.random() unless the flag is set to true
+    if (typeof UUIDV7_DENY_WEAK_RNG !== "undefined" && UUIDV7_DENY_WEAK_RNG) {
+        throw new Error("no cryptographically strong RNG available");
+    }
     for (let i = 0; i < buffer.length; i++) {
         buffer[i] =
             Math.trunc(Math.random() * 65536) * 65536 +
@@ -143,14 +148,29 @@ class DefaultRandom {
 }
 let defaultGenerator;
 /**
- * Generates a UUIDv7 hexadecimal string.
+ * Generates a UUIDv7 string.
  *
- * @returns 8-4-4-4-12 hexadecimal string representation
+ * @returns 8-4-4-4-12 canonical hexadecimal string representation
  * ("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx").
  */
-const uuidv7 = () => {
-    return (defaultGenerator || (defaultGenerator = new V7Generator()))
-        .generate()
-        .toString();
-};
+const uuidv7 = () => (0, exports.uuidv7obj)().toString();
 exports.uuidv7 = uuidv7;
+/** Generates a UUIDv7 object. */
+const uuidv7obj = () => (defaultGenerator || (defaultGenerator = new V7Generator())).generate();
+exports.uuidv7obj = uuidv7obj;
+/**
+ * Generates a UUIDv4 string.
+ *
+ * @returns 8-4-4-4-12 canonical hexadecimal string representation
+ * ("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx").
+ */
+const uuidv4 = () => (0, exports.uuidv4obj)().toString();
+exports.uuidv4 = uuidv4;
+/** Generates a UUIDv4 object. */
+const uuidv4obj = () => {
+    const bytes = getRandomValues(new Uint8Array(16));
+    bytes[6] = 0x40 | (bytes[6] >>> 4);
+    bytes[8] = 0x80 | (bytes[8] >>> 2);
+    return new UUID(bytes);
+};
+exports.uuidv4obj = uuidv4obj;
