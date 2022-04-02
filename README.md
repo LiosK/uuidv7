@@ -14,7 +14,7 @@ const result = uuidv7(); // e.g. "017fe537-bb13-7c35-b52a-cb5490cce7be"
 On browsers and Deno:
 
 ```javascript
-import { uuidv7 } from "https://unpkg.com/uuidv7";
+import { uuidv7 } from "https://unpkg.com/uuidv7@^0.3";
 
 const result = uuidv7(); // e.g. "017fe537-bb13-7c35-b52a-cb5490cce7be"
 ```

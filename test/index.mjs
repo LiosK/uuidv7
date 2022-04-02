@@ -5,6 +5,8 @@ const assert = (expression, message = "") => {
   }
 };
 
+globalThis.UUIDV7_DENY_WEAK_RNG = true;
+
 describe("uuidv7()", function () {
   const samples = [];
   for (let i = 0; i < 100_000; i++) {

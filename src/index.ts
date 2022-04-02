@@ -119,8 +119,16 @@ class V7Generator {
   }
 }
 
+/** A global flag to force use of cryptographically strong RNG. */
+declare const UUIDV7_DENY_WEAK_RNG: boolean;
+
 /** Stores `crypto.getRandomValues()` available in the environment. */
 let getRandomValues: (buffer: Uint32Array) => Uint32Array = (buffer) => {
+  // fall back on Math.random() unless the flag is set to true
+  if (typeof UUIDV7_DENY_WEAK_RNG !== "undefined" && UUIDV7_DENY_WEAK_RNG) {
+    throw new Error("no cryptographically strong RNG available");
+  }
+
   for (let i = 0; i < buffer.length; i++) {
     buffer[i] =
       Math.trunc(Math.random() * 0x1_0000) * 0x1_0000 +
@@ -135,7 +143,9 @@ if (typeof crypto !== "undefined" && crypto.getRandomValues) {
 }
 
 /** @internal */
-export const _setRandom = (rand: (buffer: Uint32Array) => Uint32Array) => {
+export const _setRandom = (
+  rand: <T extends Uint8Array | Uint16Array | Uint32Array>(buffer: T) => T
+) => {
   getRandomValues = rand;
 };
 
