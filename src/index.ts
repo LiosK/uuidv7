@@ -92,22 +92,18 @@ class V7Generator {
     const ts = Date.now();
     if (ts > this.timestamp) {
       this.timestamp = ts;
-      // initialize counter at 42-bit random integer
-      this.counter =
-        this.random.nextUint32() * 0x400 + (this.random.nextUint32() & 0x3ff);
-    } else {
+      this.resetCounter();
+    } else if (ts + 4000 > this.timestamp) {
       this.counter++;
       if (this.counter > 0x3ff_ffff_ffff) {
-        // counter overflowing; will wait for next clock tick
-        for (let i = 0; i < 1_000_000; i++) {
-          if (Date.now() > this.timestamp) {
-            return this.generate();
-          }
-        }
-        // reset state as clock did not move for a while
-        this.timestamp = 0;
-        return this.generate();
+        // increment timestamp at counter overflow
+        this.timestamp++;
+        this.resetCounter();
       }
+    } else {
+      // reset state if clock rolls back more than four seconds
+      this.timestamp = ts;
+      this.resetCounter();
     }
 
     return UUID.fromFieldsV7(
@@ -116,6 +112,12 @@ class V7Generator {
       this.counter & (2 ** 30 - 1),
       this.random.nextUint32()
     );
+  }
+
+  /** Initializes counter at 42-bit random integer. */
+  private resetCounter(): void {
+    this.counter =
+      this.random.nextUint32() * 0x400 + (this.random.nextUint32() & 0x3ff);
   }
 }
 

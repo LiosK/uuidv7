@@ -53,16 +53,19 @@ Where:
 - The 42-bit `counter` field accommodates the sequence counter that ensures the
   monotonic order of IDs generated within the same millisecond. The counter is
   incremented by one for each new ID generated within the same timestamp and is
-  randomly initialized whenever the timestamp changes.
+  randomly initialized whenever the `unix_ts_ms` changes.
 - The 2-bit `var` field is set at `10`.
 - The remaining 32 `rand` bits are filled with a cryptographically strong random
   number.
 
-In the very rare circumstance where the 42-bit `counter` field reaches the
+In the very rare circumstances where the 42-bit `counter` field reaches the
 maximum value and can no more be incremented within the same timestamp, this
-library tries to wait for the next clock tick using a busy loop. However, if the
-system clock does not move forward for a while, the library resets the generator
-state and thus breaks the monotonic order of generated identifiers.
+library increments the `unix_ts_ms`; therefore, the `unix_ts_ms` may have a
+larger value than that of the real clock. This library goes on with such larger
+`unix_ts_ms` values caused by counter overflows and system clock rollbacks as
+long as the difference from the system clock is small enough. If the system
+clock rewinds more than four seconds, this library resets the generator state
+and thus breaks the monotonic order of generated identifiers.
 
 ## Other features
 

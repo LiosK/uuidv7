@@ -81,25 +81,27 @@ class V7Generator {
         const ts = Date.now();
         if (ts > this.timestamp) {
             this.timestamp = ts;
-            // initialize counter at 42-bit random integer
-            this.counter =
-                this.random.nextUint32() * 0x400 + (this.random.nextUint32() & 0x3ff);
+            this.resetCounter();
         }
-        else {
+        else if (ts + 4000 > this.timestamp) {
             this.counter++;
             if (this.counter > 4398046511103) {
-                // counter overflowing; will wait for next clock tick
-                for (let i = 0; i < 1000000; i++) {
-                    if (Date.now() > this.timestamp) {
-                        return this.generate();
-                    }
-                }
-                // reset state as clock did not move for a while
-                this.timestamp = 0;
-                return this.generate();
+                // increment timestamp at counter overflow
+                this.timestamp++;
+                this.resetCounter();
             }
         }
+        else {
+            // reset state if clock rolls back more than four seconds
+            this.timestamp = ts;
+            this.resetCounter();
+        }
         return UUID.fromFieldsV7(this.timestamp, Math.trunc(this.counter / Math.pow(2, 30)), this.counter & (Math.pow(2, 30) - 1), this.random.nextUint32());
+    }
+    /** Initializes counter at 42-bit random integer. */
+    resetCounter() {
+        this.counter =
+            this.random.nextUint32() * 0x400 + (this.random.nextUint32() & 0x3ff);
     }
 }
 /** Stores `crypto.getRandomValues()` available in the environment. */
