@@ -93,7 +93,7 @@ class V7Generator {
     if (ts > this.timestamp) {
       this.timestamp = ts;
       this.resetCounter();
-    } else if (ts + 4000 > this.timestamp) {
+    } else if (ts + 10_000 > this.timestamp) {
       this.counter++;
       if (this.counter > 0x3ff_ffff_ffff) {
         // increment timestamp at counter overflow
@@ -101,7 +101,7 @@ class V7Generator {
         this.resetCounter();
       }
     } else {
-      // reset state if clock rolls back more than four seconds
+      // reset state if clock moves back more than ten seconds
       this.timestamp = ts;
       this.resetCounter();
     }
