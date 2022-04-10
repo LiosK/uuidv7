@@ -80,6 +80,30 @@ export class UUID {
     }
     return text;
   }
+
+  /** Creates an object from `this`. */
+  clone(): UUID {
+    return new UUID(this.bytes.slice(0));
+  }
+
+  /** Returns true if `this` is equivalent to `other`. */
+  equals(other: UUID): boolean {
+    return this.compareTo(other) === 0;
+  }
+
+  /**
+   * Returns a negative integer, zero, or positive integer if `this` is less
+   * than, equal to, or greater than `other`, respectively.
+   */
+  compareTo(other: UUID): number {
+    for (let i = 0; i < 16; i++) {
+      const diff = this.bytes[i] - other.bytes[i];
+      if (diff !== 0) {
+        return Math.sign(diff);
+      }
+    }
+    return 0;
+  }
 }
 
 /** Encapsulates the monotonic counter state. */

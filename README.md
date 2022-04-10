@@ -86,6 +86,9 @@ import { uuidv7obj } from "uuidv7";
 const object = uuidv7obj();
 console.log(object.bytes); // Uint8Array(16) [ ... ]
 console.log(String(object)); // e.g. "017fea6b-b877-7aef-b422-57db9ed15e9d"
+
+console.assert(object.clone().equals(object));
+console.assert(object.compareTo(uuidv7obj()) < 0);
 ```
 
 CommonJS entry points are available as well but are provided solely for backward
