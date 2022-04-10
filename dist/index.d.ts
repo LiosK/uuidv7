@@ -21,6 +21,15 @@ export declare class UUID {
     static fromFieldsV7(unixTsMs: number, randA: number, randBHi: number, randBLo: number): UUID;
     /** @returns 8-4-4-4-12 canonical hexadecimal string representation. */
     toString(): string;
+    /** Creates an object from `this`. */
+    clone(): UUID;
+    /** Returns true if `this` is equivalent to `other`. */
+    equals(other: UUID): boolean;
+    /**
+     * Returns a negative integer, zero, or positive integer if `this` is less
+     * than, equal to, or greater than `other`, respectively.
+     */
+    compareTo(other: UUID): number;
 }
 /**
  * Generates a UUIDv7 string.

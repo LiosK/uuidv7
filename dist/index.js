@@ -69,6 +69,27 @@ export class UUID {
         }
         return text;
     }
+    /** Creates an object from `this`. */
+    clone() {
+        return new UUID(this.bytes.slice(0));
+    }
+    /** Returns true if `this` is equivalent to `other`. */
+    equals(other) {
+        return this.compareTo(other) === 0;
+    }
+    /**
+     * Returns a negative integer, zero, or positive integer if `this` is less
+     * than, equal to, or greater than `other`, respectively.
+     */
+    compareTo(other) {
+        for (let i = 0; i < 16; i++) {
+            const diff = this.bytes[i] - other.bytes[i];
+            if (diff !== 0) {
+                return Math.sign(diff);
+            }
+        }
+        return 0;
+    }
 }
 /** Encapsulates the monotonic counter state. */
 class V7Generator {
@@ -83,7 +104,7 @@ class V7Generator {
             this.timestamp = ts;
             this.resetCounter();
         }
-        else if (ts + 4000 > this.timestamp) {
+        else if (ts + 10000 > this.timestamp) {
             this.counter++;
             if (this.counter > 4398046511103) {
                 // increment timestamp at counter overflow
@@ -92,7 +113,7 @@ class V7Generator {
             }
         }
         else {
-            // reset state if clock rolls back more than four seconds
+            // reset state if clock moves back more than ten seconds
             this.timestamp = ts;
             this.resetCounter();
         }

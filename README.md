@@ -61,11 +61,11 @@ Where:
 In the very rare circumstances where the 42-bit `counter` field reaches the
 maximum value and can no more be incremented within the same timestamp, this
 library increments the `unix_ts_ms`; therefore, the `unix_ts_ms` may have a
-larger value than that of the real clock. This library goes on with such larger
-`unix_ts_ms` values caused by counter overflows and system clock rollbacks as
-long as the difference from the system clock is small enough. If the system
-clock rewinds more than four seconds, this library resets the generator state
-and thus breaks the monotonic order of generated identifiers.
+larger value than that of the real-time clock. This library goes on with such
+larger `unix_ts_ms` values caused by counter overflows and system clock
+rollbacks as long as the difference from the system clock is small enough. If
+the system clock moves back more than ten seconds, this library resets the
+generator state and thus breaks the monotonic order of generated identifiers.
 
 ## Other features
 
@@ -86,6 +86,9 @@ import { uuidv7obj } from "uuidv7";
 const object = uuidv7obj();
 console.log(object.bytes); // Uint8Array(16) [ ... ]
 console.log(String(object)); // e.g. "017fea6b-b877-7aef-b422-57db9ed15e9d"
+
+console.assert(object.clone().equals(object));
+console.assert(object.compareTo(uuidv7obj()) < 0);
 ```
 
 CommonJS entry points are available as well but are provided solely for backward

@@ -1,6 +1,6 @@
 {
   "name": "uuidv7",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "An experimental implementation of the proposed UUID Version 7",
   "type": "module",
   "main": "./dist/index.js",
