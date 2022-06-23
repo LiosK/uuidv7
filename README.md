@@ -25,7 +25,7 @@ Command-line interface:
 npx uuidv7
 ```
 
-See [draft-peabody-dispatch-new-uuid-format-03](https://www.ietf.org/archive/id/draft-peabody-dispatch-new-uuid-format-03.html).
+See [draft-peabody-dispatch-new-uuid-format-04](https://www.ietf.org/archive/id/draft-peabody-dispatch-new-uuid-format-04.html).
 
 ## Field and bit layout
 
