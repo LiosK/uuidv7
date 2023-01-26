@@ -39,11 +39,11 @@ export class UUID {
             throw new RangeError("invalid field value");
         }
         const bytes = new Uint8Array(16);
-        bytes[0] = unixTsMs / Math.pow(2, 40);
-        bytes[1] = unixTsMs / Math.pow(2, 32);
-        bytes[2] = unixTsMs / Math.pow(2, 24);
-        bytes[3] = unixTsMs / Math.pow(2, 16);
-        bytes[4] = unixTsMs / Math.pow(2, 8);
+        bytes[0] = unixTsMs / 2 ** 40;
+        bytes[1] = unixTsMs / 2 ** 32;
+        bytes[2] = unixTsMs / 2 ** 24;
+        bytes[3] = unixTsMs / 2 ** 16;
+        bytes[4] = unixTsMs / 2 ** 8;
         bytes[5] = unixTsMs;
         bytes[6] = 0x70 | (randA >>> 8);
         bytes[7] = randA;
@@ -117,7 +117,7 @@ class V7Generator {
             this.timestamp = ts;
             this.resetCounter();
         }
-        return UUID.fromFieldsV7(this.timestamp, Math.trunc(this.counter / Math.pow(2, 30)), this.counter & (Math.pow(2, 30) - 1), this.random.nextUint32());
+        return UUID.fromFieldsV7(this.timestamp, Math.trunc(this.counter / 2 ** 30), this.counter & (2 ** 30 - 1), this.random.nextUint32());
     }
     /** Initializes counter at 42-bit random integer. */
     resetCounter() {
