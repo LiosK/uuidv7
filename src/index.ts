@@ -2,7 +2,7 @@
  * uuidv7: An experimental implementation of the proposed UUID Version 7
  *
  * @license Apache-2.0
- * @copyright 2021-2022 LiosK
+ * @copyright 2021-2023 LiosK
  * @packageDocumentation
  */
 
@@ -169,13 +169,6 @@ let getRandomValues: <T extends Uint8Array | Uint32Array>(buffer: T) => T = (
 if (typeof crypto !== "undefined" && crypto.getRandomValues) {
   getRandomValues = (buffer) => crypto.getRandomValues(buffer);
 }
-
-/** @internal */
-export const _setRandom = (
-  rand: <T extends Uint8Array | Uint16Array | Uint32Array>(buffer: T) => T
-) => {
-  getRandomValues = rand;
-};
 
 /**
  * Wraps `crypto.getRandomValues()` and compatibles to enable buffering; this

@@ -14,7 +14,7 @@ const result = uuidv7(); // e.g. "017fe537-bb13-7c35-b52a-cb5490cce7be"
 On browsers and Deno:
 
 ```javascript
-import { uuidv7 } from "https://unpkg.com/uuidv7@^0.3";
+import { uuidv7 } from "https://unpkg.com/uuidv7@^0.4";
 
 const result = uuidv7(); // e.g. "017fe537-bb13-7c35-b52a-cb5490cce7be"
 ```
@@ -90,9 +90,6 @@ console.log(String(object)); // e.g. "017fea6b-b877-7aef-b422-57db9ed15e9d"
 console.assert(object.clone().equals(object));
 console.assert(object.compareTo(uuidv7obj()) < 0);
 ```
-
-CommonJS entry points are available as well but are provided solely for backward
-compatibility.
 
 ## License
 

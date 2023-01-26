@@ -15,8 +15,10 @@
       mocha.setup("bdd");
       mocha.checkLeaks();
     </script>
-    <script src="./bundle/main.js"></script>
-    <script class="mocha-exec">
+    <script type="module" src="./uuid.mjs"></script>
+    <script type="module" src="./uuidv4.mjs"></script>
+    <script type="module" src="./uuidv7.mjs"></script>
+    <script type="module" class="mocha-exec">
       mocha.run();
     </script>
   </body>

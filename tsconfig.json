@@ -1,11 +1,10 @@
 {
-  "exclude": ["./src/cjs"],
   "compilerOptions": {
-    "target": "es2015",
-    "module": "es2015",
+    "target": "es2016",
+    "module": "node16",
+    "moduleResolution": "node16",
     "declaration": true,
-    "outDir": "./dist",
-    "stripInternal": true,
+    "outDir": "./dist/",
     "isolatedModules": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
