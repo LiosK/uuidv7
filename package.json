@@ -5,10 +5,7 @@
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "exports": {
-    "require": "./dist/cjs/index.cjs",
-    "default": "./dist/index.js"
-  },
+  "exports": "./dist/index.js",
   "bin": {
     "uuidv7": "./cli.js"
   },
@@ -17,7 +14,7 @@
   ],
   "sideEffects": false,
   "scripts": {
-    "build": "tsc && tsc -p ./tsconfig.cjs.json",
+    "build": "tsc",
     "clean": "rm -rf ./dist",
     "prepare": "npm run clean && npm run build && npm test",
     "test": "mocha"

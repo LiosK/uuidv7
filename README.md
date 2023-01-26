@@ -91,9 +91,6 @@ console.assert(object.clone().equals(object));
 console.assert(object.compareTo(uuidv7obj()) < 0);
 ```
 
-CommonJS entry points are available as well but are provided solely for backward
-compatibility.
-
 ## License
 
 Licensed under the Apache License, Version 2.0.
