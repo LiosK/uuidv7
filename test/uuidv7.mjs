@@ -1,4 +1,4 @@
-import { UUID, uuidv7, uuidv7obj } from "uuidv7";
+import { UUID, uuidv7, uuidv7obj } from "../dist/index.js";
 const assert = (expression, message = "") => {
   if (!expression) {
     throw new Error("Assertion failed" + (message ? ": " + message : ""));
