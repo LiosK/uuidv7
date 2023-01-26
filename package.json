@@ -1,9 +1,9 @@
 {
   "name": "uuidv7",
-  "version": "0.3.7",
+  "version": "0.4.0",
   "description": "An experimental implementation of the proposed UUID Version 7",
   "type": "module",
-  "main": "./dist/index.js",
+  "main": "dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": "./dist/index.js",
   "bin": {
@@ -15,8 +15,8 @@
   "sideEffects": false,
   "scripts": {
     "build": "tsc",
-    "clean": "rm -rf ./dist",
-    "prepare": "npm run clean && npm run build && npm test",
+    "prebuild": "rm -rf ./dist",
+    "prepare": "npm run build && npm test",
     "test": "mocha"
   },
   "repository": {

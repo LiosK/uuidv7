@@ -2,7 +2,7 @@
  * uuidv7: An experimental implementation of the proposed UUID Version 7
  *
  * @license Apache-2.0
- * @copyright 2021-2022 LiosK
+ * @copyright 2021-2023 LiosK
  * @packageDocumentation
  */
 
