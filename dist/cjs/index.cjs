@@ -7,7 +7,7 @@
  * @packageDocumentation
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.uuidv4obj = exports.uuidv4 = exports.uuidv7obj = exports.uuidv7 = exports._setRandom = exports.UUID = void 0;
+exports.uuidv4obj = exports.uuidv4 = exports.uuidv7obj = exports.uuidv7 = exports.UUID = void 0;
 const DIGITS = "0123456789abcdef";
 /** Represents a UUID as a 16-byte byte array. */
 class UUID {
@@ -146,11 +146,6 @@ let getRandomValues = (buffer) => {
 if (typeof crypto !== "undefined" && crypto.getRandomValues) {
     getRandomValues = (buffer) => crypto.getRandomValues(buffer);
 }
-/** @internal */
-const _setRandom = (rand) => {
-    getRandomValues = rand;
-};
-exports._setRandom = _setRandom;
 /**
  * Wraps `crypto.getRandomValues()` and compatibles to enable buffering; this
  * uses a small buffer by default to avoid unbearable throughput decline in some

@@ -6,10 +6,6 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    "node": {
-      "require": "./dist/cjs/node.cjs",
-      "default": "./dist/node.js"
-    },
     "require": "./dist/cjs/index.cjs",
     "default": "./dist/index.js"
   },
@@ -19,13 +15,7 @@
   "files": [
     "dist"
   ],
-  "sideEffects": [
-    "./dist/cjs/node.cjs",
-    "./dist/node.js"
-  ],
-  "browser": {
-    "crypto": false
-  },
+  "sideEffects": false,
   "scripts": {
     "build": "tsc && tsc -p ./tsconfig.cjs.json",
     "bundle_test": "webpack ./test/*.mjs -o ./test/bundle --mode production",

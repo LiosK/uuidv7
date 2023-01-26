@@ -5,7 +5,6 @@
     "module": "commonjs",
     // "declaration": true,
     "outDir": "./dist/cjs",
-    "stripInternal": true,
     "isolatedModules": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,

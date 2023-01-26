@@ -5,7 +5,6 @@
     "module": "es2015",
     "declaration": true,
     "outDir": "./dist",
-    "stripInternal": true,
     "isolatedModules": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
