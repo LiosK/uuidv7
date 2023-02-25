@@ -11,7 +11,7 @@ const DIGITS = "0123456789abcdef";
 /** Represents a UUID as a 16-byte byte array. */
 export class UUID {
   /** @param bytes - 16-byte byte array */
-  constructor(readonly bytes: Uint8Array) {
+  constructor(readonly bytes: Readonly<Uint8Array>) {
     if (bytes.length !== 16) {
       throw new TypeError("not 128-bit length");
     }
