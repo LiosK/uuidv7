@@ -112,22 +112,55 @@ class V7Generator {
   private counter = 0;
   private readonly random = new DefaultRandom();
 
+  /**
+   * Generates a new UUIDv7 object from the current timestamp.
+   *
+   * This method returns monotonically increasing UUIDs unless the up-to-date
+   * timestamp is significantly (by ten seconds or more) smaller than the one
+   * embedded in the immediately preceding UUID. If such a significant clock
+   * rollback is detected, this method resets the generator state and returns a
+   * new UUID based on the up-to-date timestamp.
+   */
   generate(): UUID {
+    const value = this.generateMonotonic();
+    if (value !== undefined) {
+      return value;
+    } else {
+      // reset state and resume
+      this.timestamp = 0;
+      return this.generateMonotonic() as UUID;
+    }
+  }
+
+  /**
+   * Generates a new UUIDv7 object from the current timestamp, guaranteeing that
+   * the returned UUID is greater than the immediately preceding one generated
+   * by the generator.
+   *
+   * This method returns monotonically increasing UUIDs unless the up-to-date
+   * timestamp is significantly (by ten seconds or more) smaller than the one
+   * embedded in the immediately preceding UUID. If such a significant clock
+   * rollback is detected, this method returns `undefined`.
+   */
+  generateMonotonic(): UUID | undefined {
+    const MAX_COUNTER = 0x3ff_ffff_ffff;
+    const ROLLBACK_ALLOWANCE = 10_000; // 10 seconds
+
     const ts = Date.now();
     if (ts > this.timestamp) {
       this.timestamp = ts;
       this.resetCounter();
-    } else if (ts + 10_000 > this.timestamp) {
+    } else if (ts + ROLLBACK_ALLOWANCE > this.timestamp) {
+      // go on with previous timestamp if new one is not much smaller
       this.counter++;
-      if (this.counter > 0x3ff_ffff_ffff) {
+      if (this.counter > MAX_COUNTER) {
         // increment timestamp at counter overflow
         this.timestamp++;
         this.resetCounter();
       }
     } else {
-      // reset state if clock moves back more than ten seconds
-      this.timestamp = ts;
-      this.resetCounter();
+      // abort if clock moves back to unbearable extent
+      return undefined;
     }
 
     return UUID.fromFieldsV7(
