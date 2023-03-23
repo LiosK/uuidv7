@@ -113,36 +113,36 @@ class V7Generator {
   private readonly random = new DefaultRandom();
 
   /**
-   * Generates a new UUIDv7 object from the current timestamp.
+   * Generates a new UUIDv7 object from the current timestamp, or resets the
+   * generator upon significant timestamp rollback.
    *
    * This method returns monotonically increasing UUIDs unless the up-to-date
    * timestamp is significantly (by ten seconds or more) smaller than the one
    * embedded in the immediately preceding UUID. If such a significant clock
-   * rollback is detected, this method resets the generator state and returns a
-   * new UUID based on the up-to-date timestamp.
+   * rollback is detected, this method resets the generator and returns a new
+   * UUID based on the current timestamp.
    */
   generate(): UUID {
-    const value = this.generateMonotonic();
+    const value = this.generateOrAbort();
     if (value !== undefined) {
       return value;
     } else {
       // reset state and resume
       this.timestamp = 0;
-      return this.generateMonotonic() as UUID;
+      return this.generateOrAbort()!;
     }
   }
 
   /**
-   * Generates a new UUIDv7 object from the current timestamp, guaranteeing that
-   * the returned UUID is greater than the immediately preceding one generated
-   * by the generator.
+   * Generates a new UUIDv7 object from the current timestamp, or returns
+   * `undefined` upon significant timestamp rollback.
    *
    * This method returns monotonically increasing UUIDs unless the up-to-date
    * timestamp is significantly (by ten seconds or more) smaller than the one
    * embedded in the immediately preceding UUID. If such a significant clock
-   * rollback is detected, this method returns `undefined`.
+   * rollback is detected, this method aborts and returns `undefined`.
    */
-  generateMonotonic(): UUID | undefined {
+  generateOrAbort(): UUID | undefined {
     const MAX_COUNTER = 0x3ff_ffff_ffff;
     const ROLLBACK_ALLOWANCE = 10_000; // 10 seconds
 
@@ -159,7 +159,7 @@ class V7Generator {
         this.resetCounter();
       }
     } else {
-      // abort if clock moves back to unbearable extent
+      // abort if clock went backwards to unbearable extent
       return undefined;
     }
 
