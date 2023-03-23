@@ -31,7 +31,7 @@ See [draft-ietf-uuidrev-rfc4122bis-02](https://www.ietf.org/archive/id/draft-iet
 
 This implementation produces identifiers with the following bit layout:
 
-```
+```text
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -50,22 +50,25 @@ Where:
 - The 48-bit `unix_ts_ms` field is dedicated to the Unix timestamp in
   milliseconds.
 - The 4-bit `ver` field is set at `0111`.
-- The 42-bit `counter` field accommodates the sequence counter that ensures the
-  monotonic order of IDs generated within the same millisecond. The counter is
-  incremented by one for each new ID generated within the same timestamp and is
-  randomly initialized whenever the `unix_ts_ms` changes.
+- The 42-bit `counter` field accommodates a counter that ensures the increasing
+  order of IDs generated within a millisecond. The counter is incremented by one
+  for each new ID and is reset to a random number when the `unix_ts_ms` changes.
 - The 2-bit `var` field is set at `10`.
 - The remaining 32 `rand` bits are filled with a cryptographically strong random
   number.
 
-In the very rare circumstances where the 42-bit `counter` field reaches the
-maximum value and can no more be incremented within the same timestamp, this
-library increments the `unix_ts_ms`; therefore, the `unix_ts_ms` may have a
-larger value than that of the real-time clock. This library goes on with such
-larger `unix_ts_ms` values caused by counter overflows and system clock
-rollbacks as long as the difference from the system clock is small enough. If
-the system clock moves back more than ten seconds, this library resets the
-generator state and thus breaks the monotonic order of generated identifiers.
+The 42-bit `counter` is sufficiently large, so you do not usually need to worry
+about overflow, but in an extremely rare circumstance where it overflows, this
+library increments the `unix_ts_ms` field. As a result, the `unix_ts_ms` may
+have a greater value than that of the system's real-time clock.
+
+UUIDv7, by design, heavily relies on the system's wall clock to guarantee the
+monotonically increasing order of generated IDs. A generator may not be able to
+produce a monotonic sequence if the system clock goes backwards. This library
+ignores a clock rollback and freezes the previously used `unix_ts_ms` unless the
+clock rollback is considered significant (by ten seconds or more). If such a
+significant rollback takes place, this library resets the generator and thus
+breaks the monotonic order of generated IDs.
 
 ## Other features
 

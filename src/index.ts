@@ -10,7 +10,7 @@ const DIGITS = "0123456789abcdef";
 
 /** Represents a UUID as a 16-byte byte array. */
 export class UUID {
-  /** @param bytes - 16-byte byte array */
+  /** @param bytes - The 16-byte byte array representation. */
   constructor(readonly bytes: Readonly<Uint8Array>) {
     if (bytes.length !== 16) {
       throw new TypeError("not 128-bit length");
@@ -20,10 +20,10 @@ export class UUID {
   /**
    * Builds a byte array from UUIDv7 field values.
    *
-   * @param unixTsMs - 48-bit `unix_ts_ms` field.
-   * @param randA - 12-bit `rand_a` field.
-   * @param randBHi - Higher 30 bits of 62-bit `rand_b` field.
-   * @param randBLo - Lower 32 bits of 62-bit `rand_b` field.
+   * @param unixTsMs - A 48-bit `unix_ts_ms` field value.
+   * @param randA - A 12-bit `rand_a` field value.
+   * @param randBHi - The higher 30 bits of 62-bit `rand_b` field value.
+   * @param randBLo - The lower 32 bits of 62-bit `rand_b` field value.
    */
   static fromFieldsV7(
     unixTsMs: number,
@@ -68,7 +68,7 @@ export class UUID {
     return new UUID(bytes);
   }
 
-  /** @returns 8-4-4-4-12 canonical hexadecimal string representation. */
+  /** @returns The 8-4-4-4-12 canonical hexadecimal string representation. */
   toString(): string {
     let text = "";
     for (let i = 0; i < this.bytes.length; i++) {
@@ -171,7 +171,7 @@ class V7Generator {
     );
   }
 
-  /** Initializes counter at 42-bit random integer. */
+  /** Initializes the counter at a 42-bit random integer. */
   private resetCounter(): void {
     this.counter =
       this.random.nextUint32() * 0x400 + (this.random.nextUint32() & 0x3ff);
@@ -225,7 +225,7 @@ let defaultGenerator: V7Generator | undefined;
 /**
  * Generates a UUIDv7 string.
  *
- * @returns 8-4-4-4-12 canonical hexadecimal string representation
+ * @returns The 8-4-4-4-12 canonical hexadecimal string representation
  * ("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx").
  */
 export const uuidv7 = (): string => uuidv7obj().toString();
@@ -237,7 +237,7 @@ export const uuidv7obj = (): UUID =>
 /**
  * Generates a UUIDv4 string.
  *
- * @returns 8-4-4-4-12 canonical hexadecimal string representation
+ * @returns The 8-4-4-4-12 canonical hexadecimal string representation
  * ("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx").
  */
 export const uuidv4 = (): string => uuidv4obj().toString();
