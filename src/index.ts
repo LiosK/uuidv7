@@ -10,8 +10,8 @@ const DIGITS = "0123456789abcdef";
 
 /** Represents a UUID as a 16-byte byte array. */
 export class UUID {
-  /** @param bytes - 16-byte byte array */
-  constructor(readonly bytes: Uint8Array) {
+  /** @param bytes - The 16-byte byte array representation. */
+  constructor(readonly bytes: Readonly<Uint8Array>) {
     if (bytes.length !== 16) {
       throw new TypeError("not 128-bit length");
     }
@@ -20,10 +20,10 @@ export class UUID {
   /**
    * Builds a byte array from UUIDv7 field values.
    *
-   * @param unixTsMs - 48-bit `unix_ts_ms` field.
-   * @param randA - 12-bit `rand_a` field.
-   * @param randBHi - Higher 30 bits of 62-bit `rand_b` field.
-   * @param randBLo - Lower 32 bits of 62-bit `rand_b` field.
+   * @param unixTsMs - A 48-bit `unix_ts_ms` field value.
+   * @param randA - A 12-bit `rand_a` field value.
+   * @param randBHi - The higher 30 bits of 62-bit `rand_b` field value.
+   * @param randBLo - The lower 32 bits of 62-bit `rand_b` field value.
    */
   static fromFieldsV7(
     unixTsMs: number,
@@ -68,7 +68,7 @@ export class UUID {
     return new UUID(bytes);
   }
 
-  /** @returns 8-4-4-4-12 canonical hexadecimal string representation. */
+  /** @returns The 8-4-4-4-12 canonical hexadecimal string representation. */
   toString(): string {
     let text = "";
     for (let i = 0; i < this.bytes.length; i++) {
@@ -112,22 +112,55 @@ class V7Generator {
   private counter = 0;
   private readonly random = new DefaultRandom();
 
+  /**
+   * Generates a new UUIDv7 object from the current timestamp, or resets the
+   * generator upon significant timestamp rollback.
+   *
+   * This method returns monotonically increasing UUIDs unless the up-to-date
+   * timestamp is significantly (by ten seconds or more) smaller than the one
+   * embedded in the immediately preceding UUID. If such a significant clock
+   * rollback is detected, this method resets the generator and returns a new
+   * UUID based on the current timestamp.
+   */
   generate(): UUID {
+    const value = this.generateOrAbort();
+    if (value !== undefined) {
+      return value;
+    } else {
+      // reset state and resume
+      this.timestamp = 0;
+      return this.generateOrAbort()!;
+    }
+  }
+
+  /**
+   * Generates a new UUIDv7 object from the current timestamp, or returns
+   * `undefined` upon significant timestamp rollback.
+   *
+   * This method returns monotonically increasing UUIDs unless the up-to-date
+   * timestamp is significantly (by ten seconds or more) smaller than the one
+   * embedded in the immediately preceding UUID. If such a significant clock
+   * rollback is detected, this method aborts and returns `undefined`.
+   */
+  generateOrAbort(): UUID | undefined {
+    const MAX_COUNTER = 0x3ff_ffff_ffff;
+    const ROLLBACK_ALLOWANCE = 10_000; // 10 seconds
+
     const ts = Date.now();
     if (ts > this.timestamp) {
       this.timestamp = ts;
       this.resetCounter();
-    } else if (ts + 10_000 > this.timestamp) {
+    } else if (ts + ROLLBACK_ALLOWANCE > this.timestamp) {
+      // go on with previous timestamp if new one is not much smaller
       this.counter++;
-      if (this.counter > 0x3ff_ffff_ffff) {
+      if (this.counter > MAX_COUNTER) {
         // increment timestamp at counter overflow
         this.timestamp++;
         this.resetCounter();
       }
     } else {
-      // reset state if clock moves back more than ten seconds
-      this.timestamp = ts;
-      this.resetCounter();
+      // abort if clock went backwards to unbearable extent
+      return undefined;
     }
 
     return UUID.fromFieldsV7(
@@ -138,7 +171,7 @@ class V7Generator {
     );
   }
 
-  /** Initializes counter at 42-bit random integer. */
+  /** Initializes the counter at a 42-bit random integer. */
   private resetCounter(): void {
     this.counter =
       this.random.nextUint32() * 0x400 + (this.random.nextUint32() & 0x3ff);
@@ -192,7 +225,7 @@ let defaultGenerator: V7Generator | undefined;
 /**
  * Generates a UUIDv7 string.
  *
- * @returns 8-4-4-4-12 canonical hexadecimal string representation
+ * @returns The 8-4-4-4-12 canonical hexadecimal string representation
  * ("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx").
  */
 export const uuidv7 = (): string => uuidv7obj().toString();
@@ -204,7 +237,7 @@ export const uuidv7obj = (): UUID =>
 /**
  * Generates a UUIDv4 string.
  *
- * @returns 8-4-4-4-12 canonical hexadecimal string representation
+ * @returns The 8-4-4-4-12 canonical hexadecimal string representation
  * ("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx").
  */
 export const uuidv4 = (): string => uuidv4obj().toString();
