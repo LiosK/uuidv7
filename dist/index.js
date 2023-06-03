@@ -182,7 +182,7 @@ if (typeof crypto !== "undefined" && crypto.getRandomValues) {
 class DefaultRandom {
     constructor() {
         this.buffer = new Uint32Array(8);
-        this.cursor = Infinity;
+        this.cursor = 99;
     }
     nextUint32() {
         if (this.cursor >= this.buffer.length) {

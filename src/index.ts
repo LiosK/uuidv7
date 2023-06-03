@@ -210,7 +210,7 @@ if (typeof crypto !== "undefined" && crypto.getRandomValues) {
  */
 class DefaultRandom {
   private readonly buffer = new Uint32Array(8);
-  private cursor = Infinity;
+  private cursor = 99;
   nextUint32(): number {
     if (this.cursor >= this.buffer.length) {
       getRandomValues(this.buffer);
