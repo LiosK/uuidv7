@@ -46,13 +46,24 @@ export declare class UUID {
     /** @returns The 8-4-4-4-12 canonical hexadecimal string representation. */
     toJSON(): string;
     /**
-     * Reports the variant field value of the UUID or, if appropriate, "NIL" or
-     * "MAX".
+     * A deprecated synonym for {@link getVariant}.
+     *
+     * @deprecated
+     * @hidden
      */
     getType(): "VAR_0" | "VAR_10" | "VAR_110" | "VAR_RESERVED" | "NIL" | "MAX";
     /**
+     * Reports the variant field value of the UUID or, if appropriate, "NIL" or
+     * "MAX".
+     *
+     * For convenience, this method reports "NIL" or "MAX" if `this` represents
+     * the Nil or Max UUID, although the Nil and Max UUIDs are technically
+     * subsumed under the variants `0b0` and `0b111`, respectively.
+     */
+    getVariant(): "VAR_0" | "VAR_10" | "VAR_110" | "VAR_RESERVED" | "NIL" | "MAX";
+    /**
      * Returns the version field value of the UUID or `undefined` if the UUID does
-     * not have the variant field value of `10`.
+     * not have the variant field value of `0b10`.
      */
     getVersion(): number | undefined;
     /** Creates an object from `this`. */

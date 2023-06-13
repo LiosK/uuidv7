@@ -87,7 +87,7 @@ describe("uuidv4obj()", function () {
 
   it("returns object with correct variant and version", function () {
     samples.forEach((e) =>
-      assert(e.getType() === "VAR_10" && e.getVersion() === 4)
+      assert(e.getVariant() === "VAR_10" && e.getVersion() === 4)
     );
   });
 
