@@ -94,6 +94,8 @@ console.assert(object.clone().equals(object));
 console.assert(object.compareTo(uuidv7obj()) < 0);
 ```
 
+See the [API documentation](https://liosk.github.io/uuidv7/) for details.
+
 ## License
 
 Licensed under the Apache License, Version 2.0.

@@ -15,8 +15,10 @@
   "sideEffects": false,
   "scripts": {
     "build": "tsc",
+    "doc": "typedoc ./src/index.ts --gitRevision \"v$npm_package_version\"",
     "prebuild": "rm -rf ./dist",
-    "prepare": "npm run build && npm test",
+    "predoc": "rm -rf ./docs",
+    "prepare": "npm run build && npm run doc && npm run test",
     "test": "mocha"
   },
   "repository": {
@@ -35,6 +37,7 @@
   "homepage": "https://github.com/LiosK/uuidv7#readme",
   "devDependencies": {
     "mocha": "^10.2.0",
+    "typedoc": "^0.24.8",
     "typescript": "^5.1.3"
   }
 }
