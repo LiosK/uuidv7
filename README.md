@@ -8,15 +8,15 @@ An experimental implementation of the proposed UUID Version 7
 ```javascript
 import { uuidv7 } from "uuidv7";
 
-const result = uuidv7(); // e.g. "017fe537-bb13-7c35-b52a-cb5490cce7be"
+const result = uuidv7(); // e.g., "017fe537-bb13-7c35-b52a-cb5490cce7be"
 ```
 
 On browsers and Deno:
 
 ```javascript
-import { uuidv7 } from "https://unpkg.com/uuidv7@^0.4";
+import { uuidv7 } from "https://unpkg.com/uuidv7@^0.5";
 
-const result = uuidv7(); // e.g. "017fe537-bb13-7c35-b52a-cb5490cce7be"
+const result = uuidv7(); // e.g., "017fe537-bb13-7c35-b52a-cb5490cce7be"
 ```
 
 Command-line interface:
@@ -77,7 +77,7 @@ This library also supports the generation of UUID version 4:
 ```javascript
 import { uuidv4 } from "uuidv7";
 
-const result = uuidv4(); // e.g. "83229083-75c3-4da5-8378-f88ef1a2bcd1"
+const result = uuidv4(); // e.g., "83229083-75c3-4da5-8378-f88ef1a2bcd1"
 ```
 
 `uuidv7obj()` and `uuidv4obj()` return an object that represents a UUID as a
@@ -88,7 +88,10 @@ import { uuidv7obj } from "uuidv7";
 
 const object = uuidv7obj();
 console.log(object.bytes); // Uint8Array(16) [ ... ]
-console.log(String(object)); // e.g. "017fea6b-b877-7aef-b422-57db9ed15e9d"
+console.log(String(object)); // e.g., "017fea6b-b877-7aef-b422-57db9ed15e9d"
+
+console.assert(object.getVariant() === "VAR_10");
+console.assert(object.getVersion() === 7);
 
 console.assert(object.clone().equals(object));
 console.assert(object.compareTo(uuidv7obj()) < 0);

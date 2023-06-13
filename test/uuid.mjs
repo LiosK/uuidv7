@@ -81,6 +81,11 @@ describe("UUID object", function () {
   });
 
   it("provides symmetric parse() and toString()", function () {
+    const nil = UUID.ofInner(new Uint8Array(16).fill(0x00)).toString();
+    assert(UUID.parse(nil).toString() === nil);
+    const max = UUID.ofInner(new Uint8Array(16).fill(0xff)).toString();
+    assert(UUID.parse(max).toString() === max);
+
     for (let i = 0; i < 1_000; i++) {
       const v7 = uuidv7();
       assert(UUID.parse(v7).toString() === v7);
