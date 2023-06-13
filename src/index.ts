@@ -130,10 +130,30 @@ export class UUID {
   }
 
   /**
+   * A deprecated synonym for {@link getVariant}.
+   *
+   * @deprecated
+   * @hidden
+   */
+  getType() {
+    return this.getVariant();
+  }
+
+  /**
    * Reports the variant field value of the UUID or, if appropriate, "NIL" or
    * "MAX".
+   *
+   * For convenience, this method reports "NIL" or "MAX" if `this` represents
+   * the Nil or Max UUID, although the Nil and Max UUIDs are technically
+   * subsumed under the variants `0b0` and `0b111`, respectively.
    */
-  getType(): "VAR_0" | "VAR_10" | "VAR_110" | "VAR_RESERVED" | "NIL" | "MAX" {
+  getVariant():
+    | "VAR_0"
+    | "VAR_10"
+    | "VAR_110"
+    | "VAR_RESERVED"
+    | "NIL"
+    | "MAX" {
     const n = this.bytes[8] >>> 4;
     if (n < 0) {
       throw new Error("unreachable");
@@ -152,10 +172,10 @@ export class UUID {
 
   /**
    * Returns the version field value of the UUID or `undefined` if the UUID does
-   * not have the variant field value of `10`.
+   * not have the variant field value of `0b10`.
    */
   getVersion(): number | undefined {
-    return this.getType() === "VAR_10" ? this.bytes[6] >>> 4 : undefined;
+    return this.getVariant() === "VAR_10" ? this.bytes[6] >>> 4 : undefined;
   }
 
   /** Creates an object from `this`. */
