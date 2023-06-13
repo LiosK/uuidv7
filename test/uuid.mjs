@@ -50,4 +50,33 @@ describe("UUID object", function () {
       prev = curr;
     }
   });
+
+  it("reports variant and version fields", function () {
+    const nil = UUID.ofInner(new Uint8Array(16).fill(0x00));
+    assert(nil.getType() === "NIL" && nil.getVersion() === undefined);
+
+    const max = UUID.ofInner(new Uint8Array(16).fill(0xff));
+    assert(max.getType() === "MAX" && max.getVersion() === undefined);
+
+    const obj = uuidv7obj();
+    for (let oct6 = 0; oct6 < 0x100; oct6++) {
+      obj.bytes[6] = oct6;
+      for (let oct8 = 0; oct8 < 0x100; oct8++) {
+        obj.bytes[8] = oct8;
+
+        const t = obj.getType();
+        if (t === "VAR_0") {
+          assert(oct8 >>> 7 === 0b0 && obj.getVersion() === undefined);
+        } else if (t === "VAR_10") {
+          assert(oct8 >>> 6 === 0b10 && obj.getVersion() === oct6 >>> 4);
+        } else if (t === "VAR_110") {
+          assert(oct8 >>> 5 === 0b110 && obj.getVersion() === undefined);
+        } else if (t === "VAR_RESERVED") {
+          assert(oct8 >>> 5 === 0b111 && obj.getVersion() === undefined);
+        } else {
+          throw new Error("unexpected type value: " + t);
+        }
+      }
+    }
+  });
 });

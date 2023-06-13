@@ -99,6 +99,35 @@ export class UUID {
     return this.toString();
   }
 
+  /**
+   * Reports the variant field value of the UUID or, if appropriate, "NIL" or
+   * "MAX".
+   */
+  getType(): "VAR_0" | "VAR_10" | "VAR_110" | "VAR_RESERVED" | "NIL" | "MAX" {
+    const n = this.bytes[8] >>> 4;
+    if (n < 0) {
+      throw new Error("unreachable");
+    } else if (n <= 0b0111) {
+      return this.bytes.every((e) => e === 0) ? "NIL" : "VAR_0";
+    } else if (n <= 0b1011) {
+      return "VAR_10";
+    } else if (n <= 0b1101) {
+      return "VAR_110";
+    } else if (n <= 0b1111) {
+      return this.bytes.every((e) => e === 0xff) ? "MAX" : "VAR_RESERVED";
+    } else {
+      throw new Error("unreachable");
+    }
+  }
+
+  /**
+   * Returns the version field value of the UUID or `undefined` if the UUID does
+   * not have the variant field value of `10`.
+   */
+  getVersion(): number | undefined {
+    return this.getType() === "VAR_10" ? this.bytes[6] >>> 4 : undefined;
+  }
+
   /** Creates an object from `this`. */
   clone(): UUID {
     return new UUID(this.bytes.slice(0));

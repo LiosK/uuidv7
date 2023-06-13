@@ -111,6 +111,12 @@ describe("uuidv7obj()", function () {
     );
   });
 
+  it("returns object with correct variant and version", function () {
+    samples.forEach((e) =>
+      assert(e.getType() === "VAR_10" && e.getVersion() === 7)
+    );
+  });
+
   it("returns object with toString() that returns 8-4-4-4-12", function () {
     const re =
       /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
