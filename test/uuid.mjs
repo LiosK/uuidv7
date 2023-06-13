@@ -1,4 +1,4 @@
-import { UUID, uuidv7obj } from "../dist/index.js";
+import { UUID, uuidv7, uuidv7obj, uuidv4 } from "../dist/index.js";
 const assert = (expression, message = "") => {
   if (!expression) {
     throw new Error("Assertion failed" + (message ? ": " + message : ""));
@@ -77,6 +77,16 @@ describe("UUID object", function () {
           throw new Error("unexpected type value: " + t);
         }
       }
+    }
+  });
+
+  it("provides symmetric parse() and toString()", function () {
+    for (let i = 0; i < 1_000; i++) {
+      const v7 = uuidv7();
+      assert(UUID.parse(v7).toString() === v7);
+
+      const v4 = uuidv4();
+      assert(UUID.parse(v4).toString() === v4);
     }
   });
 });

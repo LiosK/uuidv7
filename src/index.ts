@@ -82,6 +82,35 @@ export class UUID {
     return new UUID(bytes);
   }
 
+  /**
+   * Builds a byte array from the 8-4-4-4-12 canonical hexadecimal string
+   * representation.
+   *
+   * This method is currently provided on an experimental basis and may be
+   * changed or removed in the future.
+   *
+   * @throws SyntaxError if the argument could not parse as a valid UUID string.
+   * @experimental
+   */
+  static parse(uuid: string): UUID {
+    const PATTERN =
+      /^([0-9A-Fa-f]{8})-([0-9A-Fa-f]{4})-([0-9A-Fa-f]{4})-([0-9A-Fa-f]{4})-([0-9A-Fa-f]{12})$/;
+    const hex = PATTERN.exec(uuid)?.slice(1, 6).join("");
+    if (hex) {
+      const inner = new Uint8Array(16);
+      for (let i = 0; i < 16; i += 4) {
+        const n = parseInt(hex.substring(2 * i, 2 * i + 8), 16);
+        inner[i + 0] = n >>> 24;
+        inner[i + 1] = n >>> 16;
+        inner[i + 2] = n >>> 8;
+        inner[i + 3] = n;
+      }
+      return new UUID(inner);
+    } else {
+      throw new SyntaxError("could not parse UUID string");
+    }
+  }
+
   /** @returns The 8-4-4-4-12 canonical hexadecimal string representation. */
   toString(): string {
     let text = "";
