@@ -90,4 +90,10 @@ describe("uuidv4obj()", function () {
       /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
     samples.forEach((e) => assert(re.test(String(e))));
   });
+
+  it("returns object with toJSON() that returns 8-4-4-4-12", function () {
+    const re =
+      /^"[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}"$/;
+    samples.forEach((e) => assert(re.test(JSON.stringify(e))));
+  });
 });

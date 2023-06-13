@@ -94,6 +94,11 @@ export class UUID {
     return text;
   }
 
+  /** @returns The 8-4-4-4-12 canonical hexadecimal string representation. */
+  toJSON(): string {
+    return this.toString();
+  }
+
   /** Creates an object from `this`. */
   clone(): UUID {
     return new UUID(this.bytes.slice(0));
