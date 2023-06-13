@@ -22,7 +22,7 @@ export class UUID {
    *
    * @throws TypeError if the length of the argument is not 16.
    */
-  static ofInner(bytes: Readonly<Uint8Array>) {
+  static ofInner(bytes: Readonly<Uint8Array>): UUID {
     if (bytes.length !== 16) {
       throw new TypeError("not 128-bit length");
     } else {
@@ -37,6 +37,7 @@ export class UUID {
    * @param randA - A 12-bit `rand_a` field value.
    * @param randBHi - The higher 30 bits of 62-bit `rand_b` field value.
    * @param randBLo - The lower 32 bits of 62-bit `rand_b` field value.
+   * @throws RangeError if any field value is out of the specified range.
    */
   static fromFieldsV7(
     unixTsMs: number,
