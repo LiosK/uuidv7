@@ -11,9 +11,22 @@ const DIGITS = "0123456789abcdef";
 /** Represents a UUID as a 16-byte byte array. */
 export class UUID {
   /** @param bytes - The 16-byte byte array representation. */
-  constructor(readonly bytes: Readonly<Uint8Array>) {
+  private constructor(readonly bytes: Readonly<Uint8Array>) {}
+
+  /**
+   * Creates an object from the internal representation, a 16-byte byte array
+   * containing the binary UUID representation in the big-endian byte order.
+   *
+   * This method does NOT shallow-copy the argument, and thus the created object
+   * holds the reference to the underlying buffer.
+   *
+   * @throws TypeError if the length of the argument is not 16.
+   */
+  static ofInner(bytes: Readonly<Uint8Array>) {
     if (bytes.length !== 16) {
       throw new TypeError("not 128-bit length");
+    } else {
+      return new UUID(bytes);
     }
   }
 
@@ -247,5 +260,5 @@ export const uuidv4obj = (): UUID => {
   const bytes = getRandomValues(new Uint8Array(16));
   bytes[6] = 0x40 | (bytes[6] >>> 4);
   bytes[8] = 0x80 | (bytes[8] >>> 2);
-  return new UUID(bytes);
+  return UUID.ofInner(bytes);
 };

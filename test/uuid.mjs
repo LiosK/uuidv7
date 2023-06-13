@@ -10,7 +10,7 @@ globalThis.UUIDV7_DENY_WEAK_RNG = true;
 describe("UUID object", function () {
   it("supports clone and comparison methods", function () {
     const ordered = [
-      new UUID(new Uint8Array(16).fill(0x00)),
+      UUID.ofInner(new Uint8Array(16).fill(0x00)),
       UUID.fromFieldsV7(0, 0, 0, 0),
       UUID.fromFieldsV7(0, 0, 0, 1),
       UUID.fromFieldsV7(0, 0, 0, 2 ** 32 - 1),
@@ -27,7 +27,7 @@ describe("UUID object", function () {
     }
 
     ordered.push(UUID.fromFieldsV7(2 ** 48 - 1, 0, 0, 0));
-    ordered.push(new UUID(new Uint8Array(16).fill(0xff)));
+    ordered.push(UUID.ofInner(new Uint8Array(16).fill(0xff)));
 
     let prev = ordered.shift();
     for (const curr of ordered) {
