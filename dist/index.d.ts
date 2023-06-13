@@ -9,7 +9,17 @@
 export declare class UUID {
     readonly bytes: Readonly<Uint8Array>;
     /** @param bytes - The 16-byte byte array representation. */
-    constructor(bytes: Readonly<Uint8Array>);
+    private constructor();
+    /**
+     * Creates an object from the internal representation, a 16-byte byte array
+     * containing the binary UUID representation in the big-endian byte order.
+     *
+     * This method does NOT shallow-copy the argument, and thus the created object
+     * holds the reference to the underlying buffer.
+     *
+     * @throws TypeError if the length of the argument is not 16.
+     */
+    static ofInner(bytes: Readonly<Uint8Array>): UUID;
     /**
      * Builds a byte array from UUIDv7 field values.
      *
@@ -17,10 +27,34 @@ export declare class UUID {
      * @param randA - A 12-bit `rand_a` field value.
      * @param randBHi - The higher 30 bits of 62-bit `rand_b` field value.
      * @param randBLo - The lower 32 bits of 62-bit `rand_b` field value.
+     * @throws RangeError if any field value is out of the specified range.
      */
     static fromFieldsV7(unixTsMs: number, randA: number, randBHi: number, randBLo: number): UUID;
+    /**
+     * Builds a byte array from the 8-4-4-4-12 canonical hexadecimal string
+     * representation.
+     *
+     * This method is currently provided on an experimental basis and may be
+     * changed or removed in the future.
+     *
+     * @throws SyntaxError if the argument could not parse as a valid UUID string.
+     * @experimental
+     */
+    static parse(uuid: string): UUID;
     /** @returns The 8-4-4-4-12 canonical hexadecimal string representation. */
     toString(): string;
+    /** @returns The 8-4-4-4-12 canonical hexadecimal string representation. */
+    toJSON(): string;
+    /**
+     * Reports the variant field value of the UUID or, if appropriate, "NIL" or
+     * "MAX".
+     */
+    getType(): "VAR_0" | "VAR_10" | "VAR_110" | "VAR_RESERVED" | "NIL" | "MAX";
+    /**
+     * Returns the version field value of the UUID or `undefined` if the UUID does
+     * not have the variant field value of `10`.
+     */
+    getVersion(): number | undefined;
     /** Creates an object from `this`. */
     clone(): UUID;
     /** Returns true if `this` is equivalent to `other`. */

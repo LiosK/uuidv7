@@ -25,7 +25,7 @@ Command-line interface:
 npx uuidv7
 ```
 
-See [draft-ietf-uuidrev-rfc4122bis-05](https://www.ietf.org/archive/id/draft-ietf-uuidrev-rfc4122bis-05.html).
+See [draft-ietf-uuidrev-rfc4122bis-07](https://www.ietf.org/archive/id/draft-ietf-uuidrev-rfc4122bis-07.html).
 
 ## Field and bit layout
 
@@ -93,6 +93,8 @@ console.log(String(object)); // e.g. "017fea6b-b877-7aef-b422-57db9ed15e9d"
 console.assert(object.clone().equals(object));
 console.assert(object.compareTo(uuidv7obj()) < 0);
 ```
+
+See the [API documentation](https://liosk.github.io/uuidv7/) for details.
 
 ## License
 

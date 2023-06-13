@@ -11,9 +11,22 @@ const DIGITS = "0123456789abcdef";
 /** Represents a UUID as a 16-byte byte array. */
 export class UUID {
   /** @param bytes - The 16-byte byte array representation. */
-  constructor(readonly bytes: Readonly<Uint8Array>) {
+  private constructor(readonly bytes: Readonly<Uint8Array>) {}
+
+  /**
+   * Creates an object from the internal representation, a 16-byte byte array
+   * containing the binary UUID representation in the big-endian byte order.
+   *
+   * This method does NOT shallow-copy the argument, and thus the created object
+   * holds the reference to the underlying buffer.
+   *
+   * @throws TypeError if the length of the argument is not 16.
+   */
+  static ofInner(bytes: Readonly<Uint8Array>): UUID {
     if (bytes.length !== 16) {
       throw new TypeError("not 128-bit length");
+    } else {
+      return new UUID(bytes);
     }
   }
 
@@ -24,6 +37,7 @@ export class UUID {
    * @param randA - A 12-bit `rand_a` field value.
    * @param randBHi - The higher 30 bits of 62-bit `rand_b` field value.
    * @param randBLo - The lower 32 bits of 62-bit `rand_b` field value.
+   * @throws RangeError if any field value is out of the specified range.
    */
   static fromFieldsV7(
     unixTsMs: number,
@@ -68,6 +82,35 @@ export class UUID {
     return new UUID(bytes);
   }
 
+  /**
+   * Builds a byte array from the 8-4-4-4-12 canonical hexadecimal string
+   * representation.
+   *
+   * This method is currently provided on an experimental basis and may be
+   * changed or removed in the future.
+   *
+   * @throws SyntaxError if the argument could not parse as a valid UUID string.
+   * @experimental
+   */
+  static parse(uuid: string): UUID {
+    const PATTERN =
+      /^([0-9A-Fa-f]{8})-([0-9A-Fa-f]{4})-([0-9A-Fa-f]{4})-([0-9A-Fa-f]{4})-([0-9A-Fa-f]{12})$/;
+    const hex = PATTERN.exec(uuid)?.slice(1, 6).join("");
+    if (hex) {
+      const inner = new Uint8Array(16);
+      for (let i = 0; i < 16; i += 4) {
+        const n = parseInt(hex.substring(2 * i, 2 * i + 8), 16);
+        inner[i + 0] = n >>> 24;
+        inner[i + 1] = n >>> 16;
+        inner[i + 2] = n >>> 8;
+        inner[i + 3] = n;
+      }
+      return new UUID(inner);
+    } else {
+      throw new SyntaxError("could not parse UUID string");
+    }
+  }
+
   /** @returns The 8-4-4-4-12 canonical hexadecimal string representation. */
   toString(): string {
     let text = "";
@@ -79,6 +122,40 @@ export class UUID {
       }
     }
     return text;
+  }
+
+  /** @returns The 8-4-4-4-12 canonical hexadecimal string representation. */
+  toJSON(): string {
+    return this.toString();
+  }
+
+  /**
+   * Reports the variant field value of the UUID or, if appropriate, "NIL" or
+   * "MAX".
+   */
+  getType(): "VAR_0" | "VAR_10" | "VAR_110" | "VAR_RESERVED" | "NIL" | "MAX" {
+    const n = this.bytes[8] >>> 4;
+    if (n < 0) {
+      throw new Error("unreachable");
+    } else if (n <= 0b0111) {
+      return this.bytes.every((e) => e === 0) ? "NIL" : "VAR_0";
+    } else if (n <= 0b1011) {
+      return "VAR_10";
+    } else if (n <= 0b1101) {
+      return "VAR_110";
+    } else if (n <= 0b1111) {
+      return this.bytes.every((e) => e === 0xff) ? "MAX" : "VAR_RESERVED";
+    } else {
+      throw new Error("unreachable");
+    }
+  }
+
+  /**
+   * Returns the version field value of the UUID or `undefined` if the UUID does
+   * not have the variant field value of `10`.
+   */
+  getVersion(): number | undefined {
+    return this.getType() === "VAR_10" ? this.bytes[6] >>> 4 : undefined;
   }
 
   /** Creates an object from `this`. */
@@ -247,5 +324,5 @@ export const uuidv4obj = (): UUID => {
   const bytes = getRandomValues(new Uint8Array(16));
   bytes[6] = 0x40 | (bytes[6] >>> 4);
   bytes[8] = 0x80 | (bytes[8] >>> 2);
-  return new UUID(bytes);
+  return UUID.ofInner(bytes);
 };
