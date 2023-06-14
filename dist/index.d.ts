@@ -77,6 +77,49 @@ export declare class UUID {
     compareTo(other: UUID): number;
 }
 /**
+ * Encapsulates the monotonic counter state.
+ *
+ * This class provides APIs to utilize a separate counter state from that of the
+ * global generator used by {@link uuidv7} and {@link uuidv7obj}. In addition to
+ * the default {@link generate} method, this class has {@link generateOrAbort}
+ * that is useful to absolutely guarantee the monotonically increasing order of
+ * generated UUIDs despite a significant rollback of the system clock.
+ */
+export declare class V7Generator {
+    private readonly random;
+    private timestamp;
+    private counter;
+    private constructor();
+    /**
+     * Creates a new generator object configured with the default random number
+     * generator.
+     */
+    static create(): V7Generator;
+    /**
+     * Generates a new UUIDv7 object from the current timestamp, or resets the
+     * generator upon significant timestamp rollback.
+     *
+     * This method returns monotonically increasing UUIDs unless the up-to-date
+     * timestamp is significantly (by ten seconds or more) smaller than the one
+     * embedded in the immediately preceding UUID. If such a significant clock
+     * rollback is detected, this method resets the generator and returns a new
+     * UUID based on the current timestamp.
+     */
+    generate(): UUID;
+    /**
+     * Generates a new UUIDv7 object from the current timestamp, or returns
+     * `undefined` upon significant timestamp rollback.
+     *
+     * This method returns monotonically increasing UUIDs unless the up-to-date
+     * timestamp is significantly (by ten seconds or more) smaller than the one
+     * embedded in the immediately preceding UUID. If such a significant clock
+     * rollback is detected, this method aborts and returns `undefined`.
+     */
+    generateOrAbort(): UUID | undefined;
+    /** Initializes the counter at a 42-bit random integer. */
+    private resetCounter;
+}
+/**
  * Generates a UUIDv7 string.
  *
  * @returns The 8-4-4-4-12 canonical hexadecimal string representation
