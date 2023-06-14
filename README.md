@@ -97,6 +97,23 @@ console.assert(object.clone().equals(object));
 console.assert(object.compareTo(uuidv7obj()) < 0);
 ```
 
+The `V7Generator` primitive allows to utilize a separate counter state from that
+of the global generator. It also provides a fallible variant of the generator
+function to give an absolute guarantee of the increasing order of UUIDs despite
+a significant rollback of the system timestamp source.
+
+```javascript
+import { V7Generator } from "uuidv7";
+
+const g = V7Generator.create();
+const x = g.generate();
+const y = g.generateOrAbort();
+if (y === undefined) {
+  throw new Error("The clock went backwards by ten seconds!");
+}
+console.assert(x.compareTo(y) < 0);
+```
+
 See the [API documentation](https://liosk.github.io/uuidv7/) for details.
 
 ## License
