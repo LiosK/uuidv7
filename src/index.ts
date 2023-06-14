@@ -203,11 +203,28 @@ export class UUID {
   }
 }
 
-/** Encapsulates the monotonic counter state. */
-class V7Generator {
+/**
+ * Encapsulates the monotonic counter state.
+ *
+ * This class provides APIs to utilize a separate counter state from that of the
+ * global generator used by {@link uuidv7} and {@link uuidv7obj}. In addition to
+ * the default {@link generate} method, this class has {@link generateOrAbort}
+ * that is useful to absolutely guarantee the monotonically increasing order of
+ * generated UUIDs despite a significant rollback of the system clock.
+ */
+export class V7Generator {
   private timestamp = 0;
   private counter = 0;
-  private readonly random = new DefaultRandom();
+
+  private constructor(private readonly random: { nextUint32(): number }) {}
+
+  /**
+   * Creates a new generator object configured with the default random number
+   * generator.
+   */
+  static create(): V7Generator {
+    return new V7Generator(new DefaultRandom());
+  }
 
   /**
    * Generates a new UUIDv7 object from the current timestamp, or resets the
@@ -329,7 +346,7 @@ export const uuidv7 = (): string => uuidv7obj().toString();
 
 /** Generates a UUIDv7 object. */
 export const uuidv7obj = (): UUID =>
-  (defaultGenerator || (defaultGenerator = new V7Generator())).generate();
+  (defaultGenerator || (defaultGenerator = V7Generator.create())).generate();
 
 /**
  * Generates a UUIDv4 string.
