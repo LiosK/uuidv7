@@ -76,9 +76,6 @@ export class UUID {
      * Builds a byte array from the 8-4-4-4-12 canonical hexadecimal string
      * representation.
      *
-     * This method is currently provided on an experimental basis and may be
-     * changed or removed in the future.
-     *
      * @throws SyntaxError if the argument could not parse as a valid UUID string.
      * @experimental
      */
@@ -217,15 +214,7 @@ export class V7Generator {
      * UUID based on the current timestamp.
      */
     generate() {
-        const value = this.generateOrAbort();
-        if (value !== undefined) {
-            return value;
-        }
-        else {
-            // reset state and resume
-            this.timestamp = 0;
-            return this.generateOrAbort();
-        }
+        return this.generateOrResetCore(Date.now(), 10000);
     }
     /**
      * Generates a new UUIDv7 object from the current timestamp, or returns
@@ -237,14 +226,56 @@ export class V7Generator {
      * rollback is detected, this method aborts and returns `undefined`.
      */
     generateOrAbort() {
+        return this.generateOrAbortCore(Date.now(), 10000);
+    }
+    /**
+     * Generates a new UUIDv7 object from the `unixTsMs` passed, or resets the
+     * generator upon significant timestamp rollback.
+     *
+     * This method is equivalent to {@link generate} except that it takes a custom
+     * timestamp and clock rollback allowance.
+     *
+     * @param rollbackAllowance - The amount of `unixTsMs` rollback that is
+     * considered significant. A suggested value is `10_000` (milliseconds).
+     * @throws RangeError if `unixTsMs` is not a 48-bit positive integer.
+     * @experimental
+     */
+    generateOrResetCore(unixTsMs, rollbackAllowance) {
+        let value = this.generateOrAbortCore(unixTsMs, rollbackAllowance);
+        if (value === undefined) {
+            // reset state and resume
+            this.timestamp = 0;
+            value = this.generateOrAbortCore(unixTsMs, rollbackAllowance);
+        }
+        return value;
+    }
+    /**
+     * Generates a new UUIDv7 object from the `unixTsMs` passed, or returns
+     * `undefined` upon significant timestamp rollback.
+     *
+     * This method is equivalent to {@link generateOrAbort} except that it takes a
+     * custom timestamp and clock rollback allowance.
+     *
+     * @param rollbackAllowance - The amount of `unixTsMs` rollback that is
+     * considered significant. A suggested value is `10_000` (milliseconds).
+     * @throws RangeError if `unixTsMs` is not a 48-bit positive integer.
+     * @experimental
+     */
+    generateOrAbortCore(unixTsMs, rollbackAllowance) {
         const MAX_COUNTER = 4398046511103;
-        const ROLLBACK_ALLOWANCE = 10000; // 10 seconds
-        const ts = Date.now();
-        if (ts > this.timestamp) {
-            this.timestamp = ts;
+        if (!Number.isInteger(unixTsMs) ||
+            unixTsMs < 1 ||
+            unixTsMs > 281474976710655) {
+            throw new RangeError("`unixTsMs` must be a 48-bit positive integer");
+        }
+        else if (rollbackAllowance < 0 || rollbackAllowance > 281474976710655) {
+            throw new RangeError("`rollbackAllowance` out of reasonable range");
+        }
+        if (unixTsMs > this.timestamp) {
+            this.timestamp = unixTsMs;
             this.resetCounter();
         }
-        else if (ts + ROLLBACK_ALLOWANCE > this.timestamp) {
+        else if (unixTsMs + rollbackAllowance > this.timestamp) {
             // go on with previous timestamp if new one is not much smaller
             this.counter++;
             if (this.counter > MAX_COUNTER) {
