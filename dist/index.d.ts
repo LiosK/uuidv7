@@ -34,9 +34,6 @@ export declare class UUID {
      * Builds a byte array from the 8-4-4-4-12 canonical hexadecimal string
      * representation.
      *
-     * This method is currently provided on an experimental basis and may be
-     * changed or removed in the future.
-     *
      * @throws SyntaxError if the argument could not parse as a valid UUID string.
      * @experimental
      */
@@ -116,6 +113,32 @@ export declare class V7Generator {
      * rollback is detected, this method aborts and returns `undefined`.
      */
     generateOrAbort(): UUID | undefined;
+    /**
+     * Generates a new UUIDv7 object from the `unixTsMs` passed, or resets the
+     * generator upon significant timestamp rollback.
+     *
+     * This method is equivalent to {@link generate} except that it takes a custom
+     * timestamp and clock rollback allowance.
+     *
+     * @param rollbackAllowance - The amount of `unixTsMs` rollback that is
+     * considered significant. A suggested value is `10_000` (milliseconds).
+     * @throws RangeError if `unixTsMs` is not a 48-bit positive integer.
+     * @experimental
+     */
+    generateOrResetCore(unixTsMs: number, rollbackAllowance: number): UUID;
+    /**
+     * Generates a new UUIDv7 object from the `unixTsMs` passed, or returns
+     * `undefined` upon significant timestamp rollback.
+     *
+     * This method is equivalent to {@link generateOrAbort} except that it takes a
+     * custom timestamp and clock rollback allowance.
+     *
+     * @param rollbackAllowance - The amount of `unixTsMs` rollback that is
+     * considered significant. A suggested value is `10_000` (milliseconds).
+     * @throws RangeError if `unixTsMs` is not a 48-bit positive integer.
+     * @experimental
+     */
+    generateOrAbortCore(unixTsMs: number, rollbackAllowance: number): UUID | undefined;
     /** Initializes the counter at a 42-bit random integer. */
     private resetCounter;
 }
