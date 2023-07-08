@@ -43,7 +43,7 @@ export class UUID {
     unixTsMs: number,
     randA: number,
     randBHi: number,
-    randBLo: number
+    randBLo: number,
   ): UUID {
     if (
       !Number.isInteger(unixTsMs) ||
@@ -258,13 +258,13 @@ export class V7Generator {
    */
   generateOrAbort(): UUID | undefined {
     const MAX_COUNTER = 0x3ff_ffff_ffff;
-    const ROLLBACK_ALLOWANCE = 10_000; // 10 seconds
+    const rollbackAllowance = 10_000; // 10 seconds
 
-    const ts = Date.now();
-    if (ts > this.timestamp) {
-      this.timestamp = ts;
+    const unixTsMs = Date.now();
+    if (unixTsMs > this.timestamp) {
+      this.timestamp = unixTsMs;
       this.resetCounter();
-    } else if (ts + ROLLBACK_ALLOWANCE > this.timestamp) {
+    } else if (unixTsMs + rollbackAllowance > this.timestamp) {
       // go on with previous timestamp if new one is not much smaller
       this.counter++;
       if (this.counter > MAX_COUNTER) {
@@ -281,7 +281,7 @@ export class V7Generator {
       this.timestamp,
       Math.trunc(this.counter / 2 ** 30),
       this.counter & (2 ** 30 - 1),
-      this.random.nextUint32()
+      this.random.nextUint32(),
     );
   }
 
@@ -297,7 +297,7 @@ declare const UUIDV7_DENY_WEAK_RNG: boolean;
 
 /** Stores `crypto.getRandomValues()` available in the environment. */
 let getRandomValues: <T extends Uint8Array | Uint32Array>(buffer: T) => T = (
-  buffer
+  buffer,
 ) => {
   // fall back on Math.random() unless the flag is set to true
   if (typeof UUIDV7_DENY_WEAK_RNG !== "undefined" && UUIDV7_DENY_WEAK_RNG) {
