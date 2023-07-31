@@ -228,7 +228,7 @@ export class V7Generator {
    * generator upon significant timestamp rollback.
    *
    * This method returns monotonically increasing UUIDs unless the up-to-date
-   * timestamp is significantly (by ten seconds or more) smaller than the one
+   * timestamp is significantly (by more than ten seconds) smaller than the one
    * embedded in the immediately preceding UUID. If such a significant clock
    * rollback is detected, this method resets the generator and returns a new
    * UUID based on the current timestamp.
@@ -242,7 +242,7 @@ export class V7Generator {
    * `undefined` upon significant timestamp rollback.
    *
    * This method returns monotonically increasing UUIDs unless the up-to-date
-   * timestamp is significantly (by ten seconds or more) smaller than the one
+   * timestamp is significantly (by more than ten seconds) smaller than the one
    * embedded in the immediately preceding UUID. If such a significant clock
    * rollback is detected, this method aborts and returns `undefined`.
    */
@@ -303,7 +303,7 @@ export class V7Generator {
     if (unixTsMs > this.timestamp) {
       this.timestamp = unixTsMs;
       this.resetCounter();
-    } else if (unixTsMs + rollbackAllowance > this.timestamp) {
+    } else if (unixTsMs + rollbackAllowance >= this.timestamp) {
       // go on with previous timestamp if new one is not much smaller
       this.counter++;
       if (this.counter > MAX_COUNTER) {
