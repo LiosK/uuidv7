@@ -5,6 +5,7 @@
     "moduleResolution": "node16",
     "declaration": true,
     "outDir": "./dist/",
+    "stripInternal": true,
     "isolatedModules": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,

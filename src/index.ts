@@ -329,6 +329,25 @@ export class V7Generator {
     this.counter =
       this.random.nextUint32() * 0x400 + (this.random.nextUint32() & 0x3ff);
   }
+
+  /**
+   * Generates a new UUIDv4 object utilizing the random number generator inside.
+   *
+   * @internal
+   */
+  generateV4(): UUID {
+    const bytes = new Uint8Array(
+      Uint32Array.of(
+        this.random.nextUint32(),
+        this.random.nextUint32(),
+        this.random.nextUint32(),
+        this.random.nextUint32(),
+      ).buffer,
+    );
+    bytes[6] = 0x40 | (bytes[6] >>> 4);
+    bytes[8] = 0x80 | (bytes[8] >>> 2);
+    return UUID.ofInner(bytes);
+  }
 }
 
 /** A global flag to force use of cryptographically strong RNG. */
@@ -396,9 +415,5 @@ export const uuidv7obj = (): UUID =>
 export const uuidv4 = (): string => uuidv4obj().toString();
 
 /** Generates a UUIDv4 object. */
-export const uuidv4obj = (): UUID => {
-  const bytes = getRandomValues(new Uint8Array(16));
-  bytes[6] = 0x40 | (bytes[6] >>> 4);
-  bytes[8] = 0x80 | (bytes[8] >>> 2);
-  return UUID.ofInner(bytes);
-};
+export const uuidv4obj = (): UUID =>
+  (defaultGenerator || (defaultGenerator = V7Generator.create())).generateV4();
