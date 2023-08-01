@@ -97,7 +97,7 @@ export declare class V7Generator {
      * generator upon significant timestamp rollback.
      *
      * This method returns monotonically increasing UUIDs unless the up-to-date
-     * timestamp is significantly (by ten seconds or more) smaller than the one
+     * timestamp is significantly (by more than ten seconds) smaller than the one
      * embedded in the immediately preceding UUID. If such a significant clock
      * rollback is detected, this method resets the generator and returns a new
      * UUID based on the current timestamp.
@@ -108,7 +108,7 @@ export declare class V7Generator {
      * `undefined` upon significant timestamp rollback.
      *
      * This method returns monotonically increasing UUIDs unless the up-to-date
-     * timestamp is significantly (by ten seconds or more) smaller than the one
+     * timestamp is significantly (by more than ten seconds) smaller than the one
      * embedded in the immediately preceding UUID. If such a significant clock
      * rollback is detected, this method aborts and returns `undefined`.
      */
@@ -123,7 +123,6 @@ export declare class V7Generator {
      * @param rollbackAllowance - The amount of `unixTsMs` rollback that is
      * considered significant. A suggested value is `10_000` (milliseconds).
      * @throws RangeError if `unixTsMs` is not a 48-bit positive integer.
-     * @experimental
      */
     generateOrResetCore(unixTsMs: number, rollbackAllowance: number): UUID;
     /**
@@ -136,7 +135,6 @@ export declare class V7Generator {
      * @param rollbackAllowance - The amount of `unixTsMs` rollback that is
      * considered significant. A suggested value is `10_000` (milliseconds).
      * @throws RangeError if `unixTsMs` is not a 48-bit positive integer.
-     * @experimental
      */
     generateOrAbortCore(unixTsMs: number, rollbackAllowance: number): UUID | undefined;
     /** Initializes the counter at a 42-bit random integer. */

@@ -23,7 +23,7 @@
 <p>Command-line interface:</p>
 <pre><code class="language-bash"><span class="hl-6">npx</span><span class="hl-1"> </span><span class="hl-3">uuidv7</span>
 </code><button>Copy</button></pre>
-<p>See <a href="https://www.ietf.org/archive/id/draft-ietf-uuidrev-rfc4122bis-07.html">draft-ietf-uuidrev-rfc4122bis-07</a>.</p>
+<p>See <a href="https://www.ietf.org/archive/id/draft-ietf-uuidrev-rfc4122bis-08.html">draft-ietf-uuidrev-rfc4122bis-08</a>.</p>
 <a id="md:field-and-bit-layout" class="tsd-anchor"></a><h2><a href="#md:field-and-bit-layout">Field and bit layout</a></h2><p>This implementation produces identifiers with the following bit layout:</p>
 <pre><code class="language-text"> 0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -57,7 +57,7 @@ have a greater value than that of the system&#39;s real-time clock.</p>
 monotonically increasing order of generated IDs. A generator may not be able to
 produce a monotonic sequence if the system clock goes backwards. This library
 ignores a clock rollback and freezes the previously used <code>unix_ts_ms</code> unless the
-clock rollback is considered significant (by ten seconds or more). If such a
+clock rollback is considered significant (by more than ten seconds). If such a
 significant rollback takes place, this library resets the generator and thus
 breaks the monotonic order of generated IDs.</p>
 <a id="md:other-features" class="tsd-anchor"></a><h2><a href="#md:other-features">Other features</a></h2><p>This library also supports the generation of UUID version 4:</p>
