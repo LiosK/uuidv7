@@ -260,7 +260,6 @@ export class V7Generator {
    * @param rollbackAllowance - The amount of `unixTsMs` rollback that is
    * considered significant. A suggested value is `10_000` (milliseconds).
    * @throws RangeError if `unixTsMs` is not a 48-bit positive integer.
-   * @experimental
    */
   generateOrResetCore(unixTsMs: number, rollbackAllowance: number): UUID {
     let value = this.generateOrAbortCore(unixTsMs, rollbackAllowance);
@@ -282,7 +281,6 @@ export class V7Generator {
    * @param rollbackAllowance - The amount of `unixTsMs` rollback that is
    * considered significant. A suggested value is `10_000` (milliseconds).
    * @throws RangeError if `unixTsMs` is not a 48-bit positive integer.
-   * @experimental
    */
   generateOrAbortCore(
     unixTsMs: number,
