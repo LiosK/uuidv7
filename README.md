@@ -25,7 +25,7 @@ Command-line interface:
 npx uuidv7
 ```
 
-See [draft-ietf-uuidrev-rfc4122bis-07](https://www.ietf.org/archive/id/draft-ietf-uuidrev-rfc4122bis-07.html).
+See [draft-ietf-uuidrev-rfc4122bis-08](https://www.ietf.org/archive/id/draft-ietf-uuidrev-rfc4122bis-08.html).
 
 ## Field and bit layout
 
@@ -66,7 +66,7 @@ UUIDv7, by design, heavily relies on the system's wall clock to guarantee the
 monotonically increasing order of generated IDs. A generator may not be able to
 produce a monotonic sequence if the system clock goes backwards. This library
 ignores a clock rollback and freezes the previously used `unix_ts_ms` unless the
-clock rollback is considered significant (by ten seconds or more). If such a
+clock rollback is considered significant (by more than ten seconds). If such a
 significant rollback takes place, this library resets the generator and thus
 breaks the monotonic order of generated IDs.
 

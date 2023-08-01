@@ -80,14 +80,14 @@ describe("uuidv4obj()", function () {
       assert(
         e instanceof UUID &&
           e.bytes instanceof Uint8Array &&
-          e.bytes.length === 16
-      )
+          e.bytes.length === 16,
+      ),
     );
   });
 
   it("returns object with correct variant and version", function () {
     samples.forEach((e) =>
-      assert(e.getVariant() === "VAR_10" && e.getVersion() === 4)
+      assert(e.getVariant() === "VAR_10" && e.getVersion() === 4),
     );
   });
 

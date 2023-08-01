@@ -95,3 +95,58 @@ describe("UUID object", function () {
     }
   });
 });
+
+describe("UUID.parse()", function () {
+  it("parses manually prepared correct cases", function () {
+    const pass = [
+      "00000000-0000-0000-0000-000000000000",
+      "00000000-0000-0000-ffff-ffffffffffff",
+      "ffffffff-ffff-ffff-0000-000000000000",
+      "ffffffff-ffff-ffff-ffff-ffffffffffff",
+      "2781e435-ffba-211f-921b-927cdd39436d",
+      "89e0bed7-6332-5a00-f4cf-a5f215aad6cb",
+      "0ba94026-2c93-1ed9-1b36-49bdd0f22bad",
+      "9e55994c-85eb-7190-1575-af9dff337077",
+      "4fe1f4df-a5e1-7a8f-a78c-919608c3f231",
+      "5a77299f-a0fb-87e8-45de-e7f4396b73d8",
+      "34a1010d-a5e3-533a-13b2-838038136160",
+      "c313f0d1-1b27-d41f-a5db-b5d66ce23824",
+      "cfe12e9d-6236-38d3-4d6d-6d070c74fa20",
+      "e81aed20-f719-278d-0e6c-9a503812fc6d",
+      "9c681c4e-df21-64b6-6d2a-98d071b3a8a5",
+      "4c396208-7c63-0428-afc6-b6609130bf59",
+    ];
+
+    for (const e of pass) {
+      assert(UUID.parse(e).toString() === e);
+      assert(UUID.parse(e.toUpperCase()).toString() === e);
+    }
+  });
+
+  it("rejects manually prepared failing cases", function () {
+    const fail = [
+      "",
+      "2781e435ffba211f921b927cdd39436d",
+      "{89e0bed7-6332-5a00-f4cf-a5f215aad6cb}",
+      "urn:uuid:0ba94026-2c93-1ed9-1b36-49bdd0f22bad",
+      "06536892-0g22-499d-8aaf-b0dd9cfa69a4",
+      "864eh78f-0571-46jf-a1w4-538v0fdoacff",
+      "45f63383 ef0e 0d9d b1ba 834a9726829e",
+      "f523ccad6600490e9befa66f64f50f82",
+      "leading c86e2e5f-1962-42c9-85d6-cb127040b107",
+      "97f43427-788b-47bb-b2e8-cc7d79432a75 trailing",
+      "910e7851-4521-45c4-866b-fc5464",
+      "44b1796d-9d0b-4aac-81cd-ef8ed2b90e18b6fe54",
+    ];
+
+    for (const e of fail) {
+      let errCaught = undefined;
+      try {
+        UUID.parse(e);
+      } catch (err) {
+        errCaught = err;
+      }
+      assert(errCaught instanceof SyntaxError);
+    }
+  });
+});

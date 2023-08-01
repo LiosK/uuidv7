@@ -220,7 +220,7 @@ export class V7Generator {
    * generator.
    */
   static create(): V7Generator {
-    return new V7Generator(new DefaultRandom());
+    return new V7Generator(getDefaultRandom());
   }
 
   /**
@@ -228,7 +228,7 @@ export class V7Generator {
    * generator upon significant timestamp rollback.
    *
    * This method returns monotonically increasing UUIDs unless the up-to-date
-   * timestamp is significantly (by ten seconds or more) smaller than the one
+   * timestamp is significantly (by more than ten seconds) smaller than the one
    * embedded in the immediately preceding UUID. If such a significant clock
    * rollback is detected, this method resets the generator and returns a new
    * UUID based on the current timestamp.
@@ -242,7 +242,7 @@ export class V7Generator {
    * `undefined` upon significant timestamp rollback.
    *
    * This method returns monotonically increasing UUIDs unless the up-to-date
-   * timestamp is significantly (by ten seconds or more) smaller than the one
+   * timestamp is significantly (by more than ten seconds) smaller than the one
    * embedded in the immediately preceding UUID. If such a significant clock
    * rollback is detected, this method aborts and returns `undefined`.
    */
@@ -260,7 +260,6 @@ export class V7Generator {
    * @param rollbackAllowance - The amount of `unixTsMs` rollback that is
    * considered significant. A suggested value is `10_000` (milliseconds).
    * @throws RangeError if `unixTsMs` is not a 48-bit positive integer.
-   * @experimental
    */
   generateOrResetCore(unixTsMs: number, rollbackAllowance: number): UUID {
     let value = this.generateOrAbortCore(unixTsMs, rollbackAllowance);
@@ -282,7 +281,6 @@ export class V7Generator {
    * @param rollbackAllowance - The amount of `unixTsMs` rollback that is
    * considered significant. A suggested value is `10_000` (milliseconds).
    * @throws RangeError if `unixTsMs` is not a 48-bit positive integer.
-   * @experimental
    */
   generateOrAbortCore(
     unixTsMs: number,
@@ -303,7 +301,7 @@ export class V7Generator {
     if (unixTsMs > this.timestamp) {
       this.timestamp = unixTsMs;
       this.resetCounter();
-    } else if (unixTsMs + rollbackAllowance > this.timestamp) {
+    } else if (unixTsMs + rollbackAllowance >= this.timestamp) {
       // go on with previous timestamp if new one is not much smaller
       this.counter++;
       if (this.counter > MAX_COUNTER) {
@@ -329,44 +327,62 @@ export class V7Generator {
     this.counter =
       this.random.nextUint32() * 0x400 + (this.random.nextUint32() & 0x3ff);
   }
+
+  /**
+   * Generates a new UUIDv4 object utilizing the random number generator inside.
+   *
+   * @internal
+   */
+  generateV4(): UUID {
+    const bytes = new Uint8Array(
+      Uint32Array.of(
+        this.random.nextUint32(),
+        this.random.nextUint32(),
+        this.random.nextUint32(),
+        this.random.nextUint32(),
+      ).buffer,
+    );
+    bytes[6] = 0x40 | (bytes[6] >>> 4);
+    bytes[8] = 0x80 | (bytes[8] >>> 2);
+    return UUID.ofInner(bytes);
+  }
 }
 
 /** A global flag to force use of cryptographically strong RNG. */
 declare const UUIDV7_DENY_WEAK_RNG: boolean;
 
-/** Stores `crypto.getRandomValues()` available in the environment. */
-let getRandomValues: <T extends Uint8Array | Uint32Array>(buffer: T) => T = (
-  buffer,
-) => {
-  // fall back on Math.random() unless the flag is set to true
-  if (typeof UUIDV7_DENY_WEAK_RNG !== "undefined" && UUIDV7_DENY_WEAK_RNG) {
-    throw new Error("no cryptographically strong RNG available");
+/** Returns the default random number generator available in the environment. */
+const getDefaultRandom = (): { nextUint32(): number } => {
+  // detect Web Crypto API
+  if (
+    typeof crypto !== "undefined" &&
+    typeof crypto.getRandomValues !== "undefined"
+  ) {
+    return new BufferedCryptoRandom();
+  } else {
+    // fall back on Math.random() unless the flag is set to true
+    if (typeof UUIDV7_DENY_WEAK_RNG !== "undefined" && UUIDV7_DENY_WEAK_RNG) {
+      throw new Error("no cryptographically strong RNG available");
+    }
+    return {
+      nextUint32: (): number =>
+        Math.trunc(Math.random() * 0x1_0000) * 0x1_0000 +
+        Math.trunc(Math.random() * 0x1_0000),
+    };
   }
-
-  for (let i = 0; i < buffer.length; i++) {
-    buffer[i] =
-      Math.trunc(Math.random() * 0x1_0000) * 0x1_0000 +
-      Math.trunc(Math.random() * 0x1_0000);
-  }
-  return buffer;
 };
 
-// detect Web Crypto API
-if (typeof crypto !== "undefined" && crypto.getRandomValues) {
-  getRandomValues = (buffer) => crypto.getRandomValues(buffer);
-}
-
 /**
- * Wraps `crypto.getRandomValues()` and compatibles to enable buffering; this
- * uses a small buffer by default to avoid unbearable throughput decline in some
- * environments as well as the waste of time and space for unused values.
+ * Wraps `crypto.getRandomValues()` to enable buffering; this uses a small
+ * buffer by default to avoid both unbearable throughput decline in some
+ * environments and the waste of time and space for unused values.
  */
-class DefaultRandom {
+class BufferedCryptoRandom {
   private readonly buffer = new Uint32Array(8);
-  private cursor = 99;
+  private cursor = 0xffff;
   nextUint32(): number {
     if (this.cursor >= this.buffer.length) {
-      getRandomValues(this.buffer);
+      crypto.getRandomValues(this.buffer);
       this.cursor = 0;
     }
     return this.buffer[this.cursor++];
@@ -396,9 +412,5 @@ export const uuidv7obj = (): UUID =>
 export const uuidv4 = (): string => uuidv4obj().toString();
 
 /** Generates a UUIDv4 object. */
-export const uuidv4obj = (): UUID => {
-  const bytes = getRandomValues(new Uint8Array(16));
-  bytes[6] = 0x40 | (bytes[6] >>> 4);
-  bytes[8] = 0x80 | (bytes[8] >>> 2);
-  return UUID.ofInner(bytes);
-};
+export const uuidv4obj = (): UUID =>
+  (defaultGenerator || (defaultGenerator = V7Generator.create())).generateV4();
