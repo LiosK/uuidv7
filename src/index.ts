@@ -127,16 +127,6 @@ export class UUID {
   }
 
   /**
-   * A deprecated synonym for {@link getVariant}.
-   *
-   * @deprecated
-   * @hidden
-   */
-  getType() {
-    return this.getVariant();
-  }
-
-  /**
    * Reports the variant field value of the UUID or, if appropriate, "NIL" or
    * "MAX".
    *
