@@ -5,7 +5,10 @@
   "type": "module",
   "main": "dist/index.js",
   "types": "./dist/index.d.ts",
-  "exports": "./dist/index.js",
+  "exports": {
+    "require": "./dist/index.cjs",
+    "default": "./dist/index.js"
+  },
   "bin": {
     "uuidv7": "./cli.js"
   },
