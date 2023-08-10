@@ -237,7 +237,20 @@ export class V7Generator {
   private timestamp = 0;
   private counter = 0;
 
-  private constructor(private readonly random: { nextUint32(): number }) {}
+  /** The random number generator used by the generator. */
+  private readonly random: { nextUint32(): number };
+
+  /**
+   * Creates a generator object with the default random number generator, or
+   * with the specified one if passed as an argument. The specified random
+   * number generator should be cryptographically strong and securely seeded.
+   */
+  constructor(randomNumberGenerator?: {
+    /** Returns a 32-bit random unsigned integer. */
+    nextUint32(): number;
+  }) {
+    this.random = randomNumberGenerator ?? getDefaultRandom();
+  }
 
   /**
    * Creates a new generator object configured with the default random number
@@ -425,7 +438,7 @@ export const uuidv7 = (): string => uuidv7obj().toString();
 
 /** Generates a UUIDv7 object. */
 export const uuidv7obj = (): UUID =>
-  (defaultGenerator || (defaultGenerator = V7Generator.create())).generate();
+  (defaultGenerator || (defaultGenerator = new V7Generator())).generate();
 
 /**
  * Generates a UUIDv4 string.
@@ -437,4 +450,4 @@ export const uuidv4 = (): string => uuidv4obj().toString();
 
 /** Generates a UUIDv4 object. */
 export const uuidv4obj = (): UUID =>
-  (defaultGenerator || (defaultGenerator = V7Generator.create())).generateV4();
+  (defaultGenerator || (defaultGenerator = new V7Generator())).generateV4();

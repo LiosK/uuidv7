@@ -15,7 +15,7 @@ describe("V7Generator", function () {
   describe("#generateOrResetCore()", function () {
     it("generates increasing IDs even with decreasing or constant timestamp", function () {
       const ts = 0x0123_4567_89ab;
-      const g = V7Generator.create();
+      const g = new V7Generator();
 
       let prev = g.generateOrResetCore(ts, 10_000);
       assert(timestamp(prev) === ts);
@@ -30,7 +30,7 @@ describe("V7Generator", function () {
 
     it("breaks increasing order of IDs if timestamp goes backwards a lot", function () {
       const ts = 0x0123_4567_89ab;
-      const g = V7Generator.create();
+      const g = new V7Generator();
 
       let prev = g.generateOrResetCore(ts, 10_000);
       assert(timestamp(prev) === ts);
@@ -52,7 +52,7 @@ describe("V7Generator", function () {
   describe("#generateOrAbortCore()", function () {
     it("generates increasing IDs even with decreasing or constant timestamp", function () {
       const ts = 0x0123_4567_89ab;
-      const g = V7Generator.create();
+      const g = new V7Generator();
 
       let prev = g.generateOrAbortCore(ts, 10_000);
       assert(prev !== undefined);
@@ -69,7 +69,7 @@ describe("V7Generator", function () {
 
     it("returns undefined if timestamp goes backwards a lot", function () {
       const ts = 0x0123_4567_89ab;
-      const g = V7Generator.create();
+      const g = new V7Generator();
 
       const prev = g.generateOrAbortCore(ts, 10_000);
       assert(prev !== undefined);

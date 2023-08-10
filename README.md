@@ -105,7 +105,7 @@ a significant rollback of the system timestamp source.
 ```javascript
 import { V7Generator } from "uuidv7";
 
-const g = V7Generator.create();
+const g = new V7Generator();
 const x = g.generate();
 const y = g.generateOrAbort();
 if (y === undefined) {
