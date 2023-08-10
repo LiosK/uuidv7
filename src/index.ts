@@ -83,16 +83,50 @@ export class UUID {
   }
 
   /**
-   * Builds a byte array from the 8-4-4-4-12 canonical hexadecimal string
-   * representation.
+   * Builds a byte array from a string representation.
+   *
+   * This method accepts the following formats:
+   *
+   * - 32-digit hexadecimal format without hyphens: `0189dcd553117d408db09496a2eef37b`
+   * - 8-4-4-4-12 hyphenated format: `0189dcd5-5311-7d40-8db0-9496a2eef37b`
+   * - Hyphenated format with surrounding braces: `{0189dcd5-5311-7d40-8db0-9496a2eef37b}`
+   * - RFC 4122 URN format: `urn:uuid:0189dcd5-5311-7d40-8db0-9496a2eef37b`
+   *
+   * Leading and trailing whitespaces represents an error.
    *
    * @throws SyntaxError if the argument could not parse as a valid UUID string.
-   * @experimental
    */
   static parse(uuid: string): UUID {
-    const PATTERN =
-      /^([0-9A-Fa-f]{8})-([0-9A-Fa-f]{4})-([0-9A-Fa-f]{4})-([0-9A-Fa-f]{4})-([0-9A-Fa-f]{12})$/;
-    const hex = PATTERN.exec(uuid)?.slice(1, 6).join("");
+    let hex: string | undefined = undefined;
+    switch (uuid.length) {
+      case 32:
+        hex = /^[0-9a-f]{32}$/i.exec(uuid)?.[0];
+        break;
+      case 36:
+        hex =
+          /^([0-9a-f]{8})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{12})$/i
+            .exec(uuid)
+            ?.slice(1, 6)
+            .join("");
+        break;
+      case 38:
+        hex =
+          /^\{([0-9a-f]{8})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{12})\}$/i
+            .exec(uuid)
+            ?.slice(1, 6)
+            .join("");
+        break;
+      case 45:
+        hex =
+          /^urn:uuid:([0-9a-f]{8})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{12})$/i
+            .exec(uuid)
+            ?.slice(1, 6)
+            .join("");
+        break;
+      default:
+        break;
+    }
+
     if (hex) {
       const inner = new Uint8Array(16);
       for (let i = 0; i < 16; i += 4) {
@@ -124,16 +158,6 @@ export class UUID {
   /** @returns The 8-4-4-4-12 canonical hexadecimal string representation. */
   toJSON(): string {
     return this.toString();
-  }
-
-  /**
-   * A deprecated synonym for {@link getVariant}.
-   *
-   * @deprecated
-   * @hidden
-   */
-  getType() {
-    return this.getVariant();
   }
 
   /**
@@ -213,14 +237,19 @@ export class V7Generator {
   private timestamp = 0;
   private counter = 0;
 
-  private constructor(private readonly random: { nextUint32(): number }) {}
+  /** The random number generator used by the generator. */
+  private readonly random: { nextUint32(): number };
 
   /**
-   * Creates a new generator object configured with the default random number
-   * generator.
+   * Creates a generator object with the default random number generator, or
+   * with the specified one if passed as an argument. The specified random
+   * number generator should be cryptographically strong and securely seeded.
    */
-  static create(): V7Generator {
-    return new V7Generator(getDefaultRandom());
+  constructor(randomNumberGenerator?: {
+    /** Returns a 32-bit random unsigned integer. */
+    nextUint32(): number;
+  }) {
+    this.random = randomNumberGenerator ?? getDefaultRandom();
   }
 
   /**
@@ -401,7 +430,7 @@ export const uuidv7 = (): string => uuidv7obj().toString();
 
 /** Generates a UUIDv7 object. */
 export const uuidv7obj = (): UUID =>
-  (defaultGenerator || (defaultGenerator = V7Generator.create())).generate();
+  (defaultGenerator || (defaultGenerator = new V7Generator())).generate();
 
 /**
  * Generates a UUIDv4 string.
@@ -413,4 +442,4 @@ export const uuidv4 = (): string => uuidv4obj().toString();
 
 /** Generates a UUIDv4 object. */
 export const uuidv4obj = (): UUID =>
-  (defaultGenerator || (defaultGenerator = V7Generator.create())).generateV4();
+  (defaultGenerator || (defaultGenerator = new V7Generator())).generateV4();

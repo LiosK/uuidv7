@@ -25,7 +25,7 @@ Command-line interface:
 npx uuidv7
 ```
 
-See [draft-ietf-uuidrev-rfc4122bis-08](https://www.ietf.org/archive/id/draft-ietf-uuidrev-rfc4122bis-08.html).
+See [draft-ietf-uuidrev-rfc4122bis-09](https://www.ietf.org/archive/id/draft-ietf-uuidrev-rfc4122bis-09.html).
 
 ## Field and bit layout
 
@@ -105,7 +105,7 @@ a significant rollback of the system timestamp source.
 ```javascript
 import { V7Generator } from "uuidv7";
 
-const g = V7Generator.create();
+const g = new V7Generator();
 const x = g.generate();
 const y = g.generateOrAbort();
 if (y === undefined) {
@@ -115,6 +115,12 @@ console.assert(x.compareTo(y) < 0);
 ```
 
 See the [API documentation](https://liosk.github.io/uuidv7/) for details.
+
+## CommonJS support
+
+The CommonJS entry point is deprecated and provided for backward compatibility
+purposes only. The entry point is no longer tested and will be removed once this
+library hits the stable version number of v1.
 
 ## License
 

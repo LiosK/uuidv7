@@ -1,3 +1,4 @@
+"use strict";
 /**
  * uuidv7: An experimental implementation of the proposed UUID Version 7
  *
@@ -5,9 +6,11 @@
  * @copyright 2021-2023 LiosK
  * @packageDocumentation
  */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.uuidv4obj = exports.uuidv4 = exports.uuidv7obj = exports.uuidv7 = exports.V7Generator = exports.UUID = void 0;
 const DIGITS = "0123456789abcdef";
 /** Represents a UUID as a 16-byte byte array. */
-export class UUID {
+class UUID {
     /** @param bytes - The 16-byte byte array representation. */
     constructor(bytes) {
         this.bytes = bytes;
@@ -200,6 +203,7 @@ export class UUID {
         return 0;
     }
 }
+exports.UUID = UUID;
 /**
  * Encapsulates the monotonic counter state.
  *
@@ -209,7 +213,7 @@ export class UUID {
  * that is useful to absolutely guarantee the monotonically increasing order of
  * generated UUIDs despite a significant rollback of the system clock.
  */
-export class V7Generator {
+class V7Generator {
     /**
      * Creates a generator object with the default random number generator, or
      * with the specified one if passed as an argument. The specified random
@@ -322,6 +326,7 @@ export class V7Generator {
         return UUID.ofInner(bytes);
     }
 }
+exports.V7Generator = V7Generator;
 /** Returns the default random number generator available in the environment. */
 const getDefaultRandom = () => {
     // detect Web Crypto API
@@ -365,15 +370,19 @@ let defaultGenerator;
  * @returns The 8-4-4-4-12 canonical hexadecimal string representation
  * ("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx").
  */
-export const uuidv7 = () => uuidv7obj().toString();
+const uuidv7 = () => (0, exports.uuidv7obj)().toString();
+exports.uuidv7 = uuidv7;
 /** Generates a UUIDv7 object. */
-export const uuidv7obj = () => (defaultGenerator || (defaultGenerator = new V7Generator())).generate();
+const uuidv7obj = () => (defaultGenerator || (defaultGenerator = new V7Generator())).generate();
+exports.uuidv7obj = uuidv7obj;
 /**
  * Generates a UUIDv4 string.
  *
  * @returns The 8-4-4-4-12 canonical hexadecimal string representation
  * ("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx").
  */
-export const uuidv4 = () => uuidv4obj().toString();
+const uuidv4 = () => (0, exports.uuidv4obj)().toString();
+exports.uuidv4 = uuidv4;
 /** Generates a UUIDv4 object. */
-export const uuidv4obj = () => (defaultGenerator || (defaultGenerator = new V7Generator())).generateV4();
+const uuidv4obj = () => (defaultGenerator || (defaultGenerator = new V7Generator())).generateV4();
+exports.uuidv4obj = uuidv4obj;
