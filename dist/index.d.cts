@@ -31,24 +31,24 @@ export declare class UUID {
      */
     static fromFieldsV7(unixTsMs: number, randA: number, randBHi: number, randBLo: number): UUID;
     /**
-     * Builds a byte array from the 8-4-4-4-12 canonical hexadecimal string
-     * representation.
+     * Builds a byte array from a string representation.
+     *
+     * This method accepts the following formats:
+     *
+     * - 32-digit hexadecimal format without hyphens: `0189dcd553117d408db09496a2eef37b`
+     * - 8-4-4-4-12 hyphenated format: `0189dcd5-5311-7d40-8db0-9496a2eef37b`
+     * - Hyphenated format with surrounding braces: `{0189dcd5-5311-7d40-8db0-9496a2eef37b}`
+     * - RFC 4122 URN format: `urn:uuid:0189dcd5-5311-7d40-8db0-9496a2eef37b`
+     *
+     * Leading and trailing whitespaces represents an error.
      *
      * @throws SyntaxError if the argument could not parse as a valid UUID string.
-     * @experimental
      */
     static parse(uuid: string): UUID;
     /** @returns The 8-4-4-4-12 canonical hexadecimal string representation. */
     toString(): string;
     /** @returns The 8-4-4-4-12 canonical hexadecimal string representation. */
     toJSON(): string;
-    /**
-     * A deprecated synonym for {@link getVariant}.
-     *
-     * @deprecated
-     * @hidden
-     */
-    getType(): "VAR_0" | "VAR_10" | "VAR_110" | "VAR_RESERVED" | "NIL" | "MAX";
     /**
      * Reports the variant field value of the UUID or, if appropriate, "NIL" or
      * "MAX".
@@ -83,15 +83,19 @@ export declare class UUID {
  * generated UUIDs despite a significant rollback of the system clock.
  */
 export declare class V7Generator {
-    private readonly random;
     private timestamp;
     private counter;
-    private constructor();
+    /** The random number generator used by the generator. */
+    private readonly random;
     /**
-     * Creates a new generator object configured with the default random number
-     * generator.
+     * Creates a generator object with the default random number generator, or
+     * with the specified one if passed as an argument. The specified random
+     * number generator should be cryptographically strong and securely seeded.
      */
-    static create(): V7Generator;
+    constructor(randomNumberGenerator?: {
+        /** Returns a 32-bit random unsigned integer. */
+        nextUint32(): number;
+    });
     /**
      * Generates a new UUIDv7 object from the current timestamp, or resets the
      * generator upon significant timestamp rollback.

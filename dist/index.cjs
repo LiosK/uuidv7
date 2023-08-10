@@ -76,16 +76,44 @@ class UUID {
         return new UUID(bytes);
     }
     /**
-     * Builds a byte array from the 8-4-4-4-12 canonical hexadecimal string
-     * representation.
+     * Builds a byte array from a string representation.
+     *
+     * This method accepts the following formats:
+     *
+     * - 32-digit hexadecimal format without hyphens: `0189dcd553117d408db09496a2eef37b`
+     * - 8-4-4-4-12 hyphenated format: `0189dcd5-5311-7d40-8db0-9496a2eef37b`
+     * - Hyphenated format with surrounding braces: `{0189dcd5-5311-7d40-8db0-9496a2eef37b}`
+     * - RFC 4122 URN format: `urn:uuid:0189dcd5-5311-7d40-8db0-9496a2eef37b`
+     *
+     * Leading and trailing whitespaces represents an error.
      *
      * @throws SyntaxError if the argument could not parse as a valid UUID string.
-     * @experimental
      */
     static parse(uuid) {
-        var _a;
-        const PATTERN = /^([0-9A-Fa-f]{8})-([0-9A-Fa-f]{4})-([0-9A-Fa-f]{4})-([0-9A-Fa-f]{4})-([0-9A-Fa-f]{12})$/;
-        const hex = (_a = PATTERN.exec(uuid)) === null || _a === void 0 ? void 0 : _a.slice(1, 6).join("");
+        var _a, _b, _c, _d;
+        let hex = undefined;
+        switch (uuid.length) {
+            case 32:
+                hex = (_a = /^[0-9a-f]{32}$/i.exec(uuid)) === null || _a === void 0 ? void 0 : _a[0];
+                break;
+            case 36:
+                hex =
+                    (_b = /^([0-9a-f]{8})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{12})$/i
+                        .exec(uuid)) === null || _b === void 0 ? void 0 : _b.slice(1, 6).join("");
+                break;
+            case 38:
+                hex =
+                    (_c = /^\{([0-9a-f]{8})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{12})\}$/i
+                        .exec(uuid)) === null || _c === void 0 ? void 0 : _c.slice(1, 6).join("");
+                break;
+            case 45:
+                hex =
+                    (_d = /^urn:uuid:([0-9a-f]{8})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{12})$/i
+                        .exec(uuid)) === null || _d === void 0 ? void 0 : _d.slice(1, 6).join("");
+                break;
+            default:
+                break;
+        }
         if (hex) {
             const inner = new Uint8Array(16);
             for (let i = 0; i < 16; i += 4) {
@@ -116,15 +144,6 @@ class UUID {
     /** @returns The 8-4-4-4-12 canonical hexadecimal string representation. */
     toJSON() {
         return this.toString();
-    }
-    /**
-     * A deprecated synonym for {@link getVariant}.
-     *
-     * @deprecated
-     * @hidden
-     */
-    getType() {
-        return this.getVariant();
     }
     /**
      * Reports the variant field value of the UUID or, if appropriate, "NIL" or
@@ -195,17 +214,15 @@ exports.UUID = UUID;
  * generated UUIDs despite a significant rollback of the system clock.
  */
 class V7Generator {
-    constructor(random) {
-        this.random = random;
+    /**
+     * Creates a generator object with the default random number generator, or
+     * with the specified one if passed as an argument. The specified random
+     * number generator should be cryptographically strong and securely seeded.
+     */
+    constructor(randomNumberGenerator) {
         this.timestamp = 0;
         this.counter = 0;
-    }
-    /**
-     * Creates a new generator object configured with the default random number
-     * generator.
-     */
-    static create() {
-        return new V7Generator(getDefaultRandom());
+        this.random = randomNumberGenerator !== null && randomNumberGenerator !== void 0 ? randomNumberGenerator : getDefaultRandom();
     }
     /**
      * Generates a new UUIDv7 object from the current timestamp, or resets the
@@ -356,7 +373,7 @@ let defaultGenerator;
 const uuidv7 = () => (0, exports.uuidv7obj)().toString();
 exports.uuidv7 = uuidv7;
 /** Generates a UUIDv7 object. */
-const uuidv7obj = () => (defaultGenerator || (defaultGenerator = V7Generator.create())).generate();
+const uuidv7obj = () => (defaultGenerator || (defaultGenerator = new V7Generator())).generate();
 exports.uuidv7obj = uuidv7obj;
 /**
  * Generates a UUIDv4 string.
@@ -367,5 +384,5 @@ exports.uuidv7obj = uuidv7obj;
 const uuidv4 = () => (0, exports.uuidv4obj)().toString();
 exports.uuidv4 = uuidv4;
 /** Generates a UUIDv4 object. */
-const uuidv4obj = () => (defaultGenerator || (defaultGenerator = V7Generator.create())).generateV4();
+const uuidv4obj = () => (defaultGenerator || (defaultGenerator = new V7Generator())).generateV4();
 exports.uuidv4obj = uuidv4obj;
