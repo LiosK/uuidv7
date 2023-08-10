@@ -25,7 +25,7 @@ Command-line interface:
 npx uuidv7
 ```
 
-See [draft-ietf-uuidrev-rfc4122bis-08](https://www.ietf.org/archive/id/draft-ietf-uuidrev-rfc4122bis-08.html).
+See [draft-ietf-uuidrev-rfc4122bis-09](https://www.ietf.org/archive/id/draft-ietf-uuidrev-rfc4122bis-09.html).
 
 ## Field and bit layout
 
