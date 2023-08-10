@@ -253,14 +253,6 @@ export class V7Generator {
   }
 
   /**
-   * Creates a new generator object configured with the default random number
-   * generator.
-   */
-  static create(): V7Generator {
-    return new V7Generator(getDefaultRandom());
-  }
-
-  /**
    * Generates a new UUIDv7 object from the current timestamp, or resets the
    * generator upon significant timestamp rollback.
    *
