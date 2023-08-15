@@ -14,7 +14,7 @@ const result = uuidv7(); // e.g., "017fe537-bb13-7c35-b52a-cb5490cce7be"
 On browsers and Deno:
 
 ```javascript
-import { uuidv7 } from "https://unpkg.com/uuidv7@^0.5";
+import { uuidv7 } from "https://unpkg.com/uuidv7@^0.6";
 
 const result = uuidv7(); // e.g., "017fe537-bb13-7c35-b52a-cb5490cce7be"
 ```
@@ -22,7 +22,14 @@ const result = uuidv7(); // e.g., "017fe537-bb13-7c35-b52a-cb5490cce7be"
 Command-line interface:
 
 ```bash
-npx uuidv7
+$ npx uuidv7
+0189f7e5-c883-7106-8272-ccb7fcba0575
+$
+$ npx uuidv7 -n 4
+0189f7ea-ae2c-7809-8aeb-b819cf5e9e7f
+0189f7ea-ae2f-72b9-9be8-9c3c5a60214f
+0189f7ea-ae2f-72b9-9be8-9c3d224082ef
+0189f7ea-ae2f-72b9-9be8-9c3e3e8abae8
 ```
 
 See [draft-ietf-uuidrev-rfc4122bis-09](https://www.ietf.org/archive/id/draft-ietf-uuidrev-rfc4122bis-09.html).
