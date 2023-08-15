@@ -132,3 +132,29 @@ library hits the stable version number of v1.
 ## License
 
 Licensed under the Apache License, Version 2.0.
+
+## Related project
+
+[Uuid25](https://www.npmjs.com/package/uuid25) provides the conversion to/from a
+condensed, sortable, case-insensitive, 25-digit Base36 representation of UUID as
+well as other well-known textual representations. Uuid25 is available in several
+languages including Go, JavaScript, Python, Rust, and Swift.
+
+```javascript
+import { uuidv7obj } from "uuidv7";
+import { Uuid25 } from "uuid25";
+
+const uuid25 = Uuid25.fromBytes(uuidv7obj().bytes);
+
+console.log(uuid25.value);
+// e.g., "03a2s63x4x0b9mev9e88i7gpm"
+
+console.log(uuid25.toHex());
+// e.g., "0189f8068f1a79b6bb21123c6accc25a"
+console.log(uuid25.toHyphenated());
+// e.g., "0189f806-8f1a-79b6-bb21-123c6accc25a"
+console.log(uuid25.toBraced());
+// e.g., "{0189f806-8f1a-79b6-bb21-123c6accc25a}"
+console.log(uuid25.toUrn());
+// e.g., "urn:uuid:0189f806-8f1a-79b6-bb21-123c6accc25a"
+```
