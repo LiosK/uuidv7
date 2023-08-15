@@ -142,7 +142,10 @@ export class UUID {
     }
   }
 
-  /** @returns The 8-4-4-4-12 canonical hexadecimal string representation. */
+  /**
+   * @returns The 8-4-4-4-12 canonical hexadecimal string representation
+   * (`0189dcd5-5311-7d40-8db0-9496a2eef37b`).
+   */
   toString(): string {
     let text = "";
     for (let i = 0; i < this.bytes.length; i++) {
@@ -151,6 +154,19 @@ export class UUID {
       if (i === 3 || i === 5 || i === 7 || i === 9) {
         text += "-";
       }
+    }
+    return text;
+  }
+
+  /**
+   * @returns The 32-digit hexadecimal representation without hyphens
+   * (`0189dcd553117d408db09496a2eef37b`).
+   */
+  toHex(): string {
+    let text = "";
+    for (let i = 0; i < this.bytes.length; i++) {
+      text += DIGITS.charAt(this.bytes[i] >>> 4);
+      text += DIGITS.charAt(this.bytes[i] & 0xf);
     }
     return text;
   }

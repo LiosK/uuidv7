@@ -189,6 +189,7 @@ describe("UUID.parse()", function () {
       for (const e of pass) {
         const x = UUID.parse(e[format]);
         assert(x.toString() === e.hyphenated);
+        assert(x.toHex() === e.hex);
         assert(x.bytes.length === e.bytes.length);
         for (let i = 0; i < e.bytes.length; i++) {
           assert(x.bytes[i] === e.bytes[i]);
