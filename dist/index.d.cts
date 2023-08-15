@@ -45,8 +45,16 @@ export declare class UUID {
      * @throws SyntaxError if the argument could not parse as a valid UUID string.
      */
     static parse(uuid: string): UUID;
-    /** @returns The 8-4-4-4-12 canonical hexadecimal string representation. */
+    /**
+     * @returns The 8-4-4-4-12 canonical hexadecimal string representation
+     * (`0189dcd5-5311-7d40-8db0-9496a2eef37b`).
+     */
     toString(): string;
+    /**
+     * @returns The 32-digit hexadecimal representation without hyphens
+     * (`0189dcd553117d408db09496a2eef37b`).
+     */
+    toHex(): string;
     /** @returns The 8-4-4-4-12 canonical hexadecimal string representation. */
     toJSON(): string;
     /**
