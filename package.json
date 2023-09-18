@@ -10,7 +10,7 @@
     "default": "./dist/index.js"
   },
   "bin": {
-    "uuidv7": "./cli.js"
+    "uuidv7": "cli.js"
   },
   "files": [
     "dist"

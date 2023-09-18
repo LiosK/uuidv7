@@ -16,11 +16,12 @@ try {
       help: { type: "boolean", short: "h" },
     },
   }).values;
+
   if (options.count && !/^[0-9]+$/.test(options.count)) {
     throw new TypeError("Invalid argument to option '-n, --count <value>'");
   }
 } catch (e) {
-  console.error(`Error: ${e.message}`);
+  console.error(`Error: ${e.message ?? e}`);
   exit(1);
 }
 
