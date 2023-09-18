@@ -88,7 +88,7 @@ export declare class UUID {
  * global generator used by {@link uuidv7} and {@link uuidv7obj}. In addition to
  * the default {@link generate} method, this class has {@link generateOrAbort}
  * that is useful to absolutely guarantee the monotonically increasing order of
- * generated UUIDs despite a significant rollback of the system clock.
+ * generated UUIDs. See their respective documentation for details.
  */
 export declare class V7Generator {
     private timestamp;
@@ -108,21 +108,29 @@ export declare class V7Generator {
      * Generates a new UUIDv7 object from the current timestamp, or resets the
      * generator upon significant timestamp rollback.
      *
-     * This method returns monotonically increasing UUIDs unless the up-to-date
-     * timestamp is significantly (by more than ten seconds) smaller than the one
-     * embedded in the immediately preceding UUID. If such a significant clock
-     * rollback is detected, this method resets the generator and returns a new
-     * UUID based on the current timestamp.
+     * This method returns a monotonically increasing UUID by reusing the previous
+     * timestamp even if the up-to-date timestamp is smaller than the immediately
+     * preceding UUID's. However, when such a clock rollback is considered
+     * significant (i.e., by more than ten seconds), this method resets the
+     * generator and returns a new UUID based on the given timestamp, breaking the
+     * increasing order of UUIDs.
+     *
+     * See {@link generateOrAbort} for the other mode of generation and
+     * {@link generateOrResetCore} for the low-level primitive.
      */
     generate(): UUID;
     /**
      * Generates a new UUIDv7 object from the current timestamp, or returns
      * `undefined` upon significant timestamp rollback.
      *
-     * This method returns monotonically increasing UUIDs unless the up-to-date
-     * timestamp is significantly (by more than ten seconds) smaller than the one
-     * embedded in the immediately preceding UUID. If such a significant clock
-     * rollback is detected, this method aborts and returns `undefined`.
+     * This method returns a monotonically increasing UUID by reusing the previous
+     * timestamp even if the up-to-date timestamp is smaller than the immediately
+     * preceding UUID's. However, when such a clock rollback is considered
+     * significant (i.e., by more than ten seconds), this method aborts and
+     * returns `undefined` immediately.
+     *
+     * See {@link generate} for the other mode of generation and
+     * {@link generateOrAbortCore} for the low-level primitive.
      */
     generateOrAbort(): UUID | undefined;
     /**
