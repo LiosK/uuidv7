@@ -1,9 +1,7 @@
-# uuidv7
+# uuidv7: A JavaScript implementation of UUID Version 7
 
 [![npm](https://img.shields.io/npm/v/uuidv7)](https://www.npmjs.com/package/uuidv7)
 [![License](https://img.shields.io/npm/l/uuidv7)](https://github.com/LiosK/uuidv7/blob/main/LICENSE)
-
-An experimental implementation of the proposed UUID Version 7
 
 ```javascript
 import { uuidv7 } from "uuidv7";
