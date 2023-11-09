@@ -127,8 +127,8 @@ See the [API documentation](https://liosk.github.io/uuidv7/) for details.
 ## CommonJS support
 
 The CommonJS entry point is deprecated and provided for backward compatibility
-purposes only. The entry point is no longer tested and will be removed once this
-library hits the stable version number of v1.
+purposes only. The entry point is no longer tested and will be removed in the
+future.
 
 ## License
 
