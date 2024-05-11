@@ -1,8 +1,8 @@
 /**
- * uuidv7: An experimental implementation of the proposed UUID Version 7
+ * uuidv7: A JavaScript implementation of UUID version 7
  *
  * @license Apache-2.0
- * @copyright 2021-2023 LiosK
+ * @copyright 2021-2024 LiosK
  * @packageDocumentation
  */
 /** Represents a UUID as a 16-byte byte array. */
@@ -38,7 +38,7 @@ export declare class UUID {
      * - 32-digit hexadecimal format without hyphens: `0189dcd553117d408db09496a2eef37b`
      * - 8-4-4-4-12 hyphenated format: `0189dcd5-5311-7d40-8db0-9496a2eef37b`
      * - Hyphenated format with surrounding braces: `{0189dcd5-5311-7d40-8db0-9496a2eef37b}`
-     * - RFC 4122 URN format: `urn:uuid:0189dcd5-5311-7d40-8db0-9496a2eef37b`
+     * - RFC 9562 URN format: `urn:uuid:0189dcd5-5311-7d40-8db0-9496a2eef37b`
      *
      * Leading and trailing whitespaces represents an error.
      *
