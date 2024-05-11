@@ -1,4 +1,4 @@
-# uuidv7: A JavaScript implementation of UUID Version 7
+# uuidv7: A JavaScript implementation of UUID version 7
 
 [![npm](https://img.shields.io/npm/v/uuidv7)](https://www.npmjs.com/package/uuidv7)
 [![License](https://img.shields.io/npm/l/uuidv7)](https://github.com/LiosK/uuidv7/blob/main/LICENSE)
@@ -30,7 +30,7 @@ $ npx uuidv7 -n 4
 0189f7ea-ae2f-72b9-9be8-9c3e3e8abae8
 ```
 
-See [draft-ietf-uuidrev-rfc4122bis-11](https://www.ietf.org/archive/id/draft-ietf-uuidrev-rfc4122bis-11.html).
+See [RFC 9562](https://www.rfc-editor.org/rfc/rfc9562).
 
 ## Field and bit layout
 
