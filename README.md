@@ -1,9 +1,7 @@
-# uuidv7
+# uuidv7: A JavaScript implementation of UUID version 7
 
 [![npm](https://img.shields.io/npm/v/uuidv7)](https://www.npmjs.com/package/uuidv7)
 [![License](https://img.shields.io/npm/l/uuidv7)](https://github.com/LiosK/uuidv7/blob/main/LICENSE)
-
-An experimental implementation of the proposed UUID Version 7
 
 ```javascript
 import { uuidv7 } from "uuidv7";
@@ -14,7 +12,7 @@ const result = uuidv7(); // e.g., "017fe537-bb13-7c35-b52a-cb5490cce7be"
 On browsers and Deno:
 
 ```javascript
-import { uuidv7 } from "https://unpkg.com/uuidv7@^0.6";
+import { uuidv7 } from "https://unpkg.com/uuidv7@^1";
 
 const result = uuidv7(); // e.g., "017fe537-bb13-7c35-b52a-cb5490cce7be"
 ```
@@ -32,7 +30,7 @@ $ npx uuidv7 -n 4
 0189f7ea-ae2f-72b9-9be8-9c3e3e8abae8
 ```
 
-See [draft-ietf-uuidrev-rfc4122bis-11](https://www.ietf.org/archive/id/draft-ietf-uuidrev-rfc4122bis-11.html).
+See [RFC 9562](https://www.rfc-editor.org/rfc/rfc9562).
 
 ## Field and bit layout
 
@@ -127,8 +125,8 @@ See the [API documentation](https://liosk.github.io/uuidv7/) for details.
 ## CommonJS support
 
 The CommonJS entry point is deprecated and provided for backward compatibility
-purposes only. The entry point is no longer tested and will be removed once this
-library hits the stable version number of v1.
+purposes only. The entry point is no longer tested and will be removed in the
+future.
 
 ## License
 
