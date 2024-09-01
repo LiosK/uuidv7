@@ -343,7 +343,7 @@ export class V7Generator {
 
     if (
       !Number.isInteger(unixTsMs) ||
-      unixTsMs < 1 ||
+      unixTsMs < 0 ||
       unixTsMs > 0xffff_ffff_ffff
     ) {
       throw new RangeError("`unixTsMs` must be a 48-bit positive integer");
