@@ -250,7 +250,7 @@ export class UUID {
  * generated UUIDs. See their respective documentation for details.
  */
 export class V7Generator {
-  private timestamp = 0;
+  private timestamp: number | undefined;
   private counter = 0;
 
   /** The random number generator used by the generator. */
@@ -312,13 +312,13 @@ export class V7Generator {
    *
    * @param rollbackAllowance - The amount of `unixTsMs` rollback that is
    * considered significant. A suggested value is `10_000` (milliseconds).
-   * @throws RangeError if `unixTsMs` is not a 48-bit positive integer.
+   * @throws RangeError if `unixTsMs` is not a 48-bit positive integer or zero.
    */
   generateOrResetCore(unixTsMs: number, rollbackAllowance: number): UUID {
     let value = this.generateOrAbortCore(unixTsMs, rollbackAllowance);
     if (value === undefined) {
       // reset state and resume
-      this.timestamp = 0;
+      this.timestamp = undefined;
       value = this.generateOrAbortCore(unixTsMs, rollbackAllowance)!;
     }
     return value;
@@ -333,7 +333,7 @@ export class V7Generator {
    *
    * @param rollbackAllowance - The amount of `unixTsMs` rollback that is
    * considered significant. A suggested value is `10_000` (milliseconds).
-   * @throws RangeError if `unixTsMs` is not a 48-bit positive integer.
+   * @throws RangeError if `unixTsMs` is not a 48-bit positive integer or zero.
    */
   generateOrAbortCore(
     unixTsMs: number,
@@ -351,7 +351,7 @@ export class V7Generator {
       throw new RangeError("`rollbackAllowance` out of reasonable range");
     }
 
-    if (unixTsMs > this.timestamp) {
+    if (this.timestamp === undefined || unixTsMs > this.timestamp) {
       this.timestamp = unixTsMs;
       this.resetCounter();
     } else if (unixTsMs + rollbackAllowance >= this.timestamp) {
