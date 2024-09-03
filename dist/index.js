@@ -1,8 +1,9 @@
 /**
  * uuidv7: A JavaScript implementation of UUID version 7
  *
+ * Copyright 2021-2024 LiosK
+ *
  * @license Apache-2.0
- * @copyright 2021-2024 LiosK
  * @packageDocumentation
  */
 const DIGITS = "0123456789abcdef";
