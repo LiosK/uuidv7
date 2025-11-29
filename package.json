@@ -1,6 +1,6 @@
 {
   "name": "uuidv7",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A JavaScript implementation of UUID version 7",
   "type": "module",
   "main": "dist/index.js",
@@ -40,8 +40,8 @@
   },
   "homepage": "https://github.com/LiosK/uuidv7#readme",
   "devDependencies": {
-    "mocha": "^10.7.3",
-    "typedoc": "^0.26.6",
-    "typescript": "^5.5.4"
+    "mocha": "^11.7.5",
+    "typedoc": "^0.28.14",
+    "typescript": "^5.9.3"
   }
 }
