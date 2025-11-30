@@ -1,7 +1,7 @@
 /**
  * uuidv7: A JavaScript implementation of UUID version 7
  *
- * Copyright 2021-2024 LiosK
+ * Copyright 2021-2025 LiosK
  *
  * @license Apache-2.0
  * @packageDocumentation
@@ -232,7 +232,10 @@ export class V7Generator {
      * number generator should be cryptographically strong and securely seeded.
      */
     constructor(randomNumberGenerator) {
-        this.timestamp = 0;
+        /**
+         * Biased by one to distinguish zero (uninitialized) and zero (UNIX epoch).
+         */
+        this.timestamp_biased = 0;
         this.counter = 0;
         this.random = randomNumberGenerator !== null && randomNumberGenerator !== void 0 ? randomNumberGenerator : getDefaultRandom();
     }
@@ -278,13 +281,13 @@ export class V7Generator {
      *
      * @param rollbackAllowance - The amount of `unixTsMs` rollback that is
      * considered significant. A suggested value is `10_000` (milliseconds).
-     * @throws RangeError if `unixTsMs` is not a 48-bit positive integer.
+     * @throws RangeError if `unixTsMs` is not a 48-bit unsigned integer.
      */
     generateOrResetCore(unixTsMs, rollbackAllowance) {
         let value = this.generateOrAbortCore(unixTsMs, rollbackAllowance);
         if (value === undefined) {
             // reset state and resume
-            this.timestamp = 0;
+            this.timestamp_biased = 0;
             value = this.generateOrAbortCore(unixTsMs, rollbackAllowance);
         }
         return value;
@@ -298,28 +301,29 @@ export class V7Generator {
      *
      * @param rollbackAllowance - The amount of `unixTsMs` rollback that is
      * considered significant. A suggested value is `10_000` (milliseconds).
-     * @throws RangeError if `unixTsMs` is not a 48-bit positive integer.
+     * @throws RangeError if `unixTsMs` is not a 48-bit unsigned integer.
      */
     generateOrAbortCore(unixTsMs, rollbackAllowance) {
         const MAX_COUNTER = 4398046511103;
         if (!Number.isInteger(unixTsMs) ||
-            unixTsMs < 1 ||
+            unixTsMs < 0 ||
             unixTsMs > 281474976710655) {
-            throw new RangeError("`unixTsMs` must be a 48-bit positive integer");
+            throw new RangeError("`unixTsMs` must be a 48-bit unsigned integer");
         }
         else if (rollbackAllowance < 0 || rollbackAllowance > 281474976710655) {
             throw new RangeError("`rollbackAllowance` out of reasonable range");
         }
-        if (unixTsMs > this.timestamp) {
-            this.timestamp = unixTsMs;
+        unixTsMs++;
+        if (unixTsMs > this.timestamp_biased) {
+            this.timestamp_biased = unixTsMs;
             this.resetCounter();
         }
-        else if (unixTsMs + rollbackAllowance >= this.timestamp) {
+        else if (unixTsMs + rollbackAllowance >= this.timestamp_biased) {
             // go on with previous timestamp if new one is not much smaller
             this.counter++;
             if (this.counter > MAX_COUNTER) {
                 // increment timestamp at counter overflow
-                this.timestamp++;
+                this.timestamp_biased++;
                 this.resetCounter();
             }
         }
@@ -327,7 +331,7 @@ export class V7Generator {
             // abort if clock went backwards to unbearable extent
             return undefined;
         }
-        return UUID.fromFieldsV7(this.timestamp, Math.trunc(this.counter / 2 ** 30), this.counter & (2 ** 30 - 1), this.random.nextUint32());
+        return UUID.fromFieldsV7(this.timestamp_biased - 1, Math.trunc(this.counter / 2 ** 30), this.counter & (2 ** 30 - 1), this.random.nextUint32());
     }
     /** Initializes the counter at a 42-bit random integer. */
     resetCounter() {

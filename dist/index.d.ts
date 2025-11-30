@@ -1,7 +1,7 @@
 /**
  * uuidv7: A JavaScript implementation of UUID version 7
  *
- * Copyright 2021-2024 LiosK
+ * Copyright 2021-2025 LiosK
  *
  * @license Apache-2.0
  * @packageDocumentation
@@ -92,7 +92,10 @@ export declare class UUID {
  * generated UUIDs. See their respective documentation for details.
  */
 export declare class V7Generator {
-    private timestamp;
+    /**
+     * Biased by one to distinguish zero (uninitialized) and zero (UNIX epoch).
+     */
+    private timestamp_biased;
     private counter;
     /** The random number generator used by the generator. */
     private readonly random;
@@ -143,7 +146,7 @@ export declare class V7Generator {
      *
      * @param rollbackAllowance - The amount of `unixTsMs` rollback that is
      * considered significant. A suggested value is `10_000` (milliseconds).
-     * @throws RangeError if `unixTsMs` is not a 48-bit positive integer.
+     * @throws RangeError if `unixTsMs` is not a 48-bit unsigned integer.
      */
     generateOrResetCore(unixTsMs: number, rollbackAllowance: number): UUID;
     /**
@@ -155,7 +158,7 @@ export declare class V7Generator {
      *
      * @param rollbackAllowance - The amount of `unixTsMs` rollback that is
      * considered significant. A suggested value is `10_000` (milliseconds).
-     * @throws RangeError if `unixTsMs` is not a 48-bit positive integer.
+     * @throws RangeError if `unixTsMs` is not a 48-bit unsigned integer.
      */
     generateOrAbortCore(unixTsMs: number, rollbackAllowance: number): UUID | undefined;
     /** Initializes the counter at a 42-bit random integer. */

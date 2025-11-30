@@ -1,8 +1,9 @@
 # Changelog
 
-## v1.1.0 - unreleased
+## v1.1.0 - 2025-11-30
 
 - Adjusted `V7Generator` to accept zero as a valid timestamp
+- Updated dev dependencies
 
 ## v1.0.3 - 2025-11-28
 
