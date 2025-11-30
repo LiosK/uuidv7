@@ -254,7 +254,7 @@ export class V7Generator {
   /**
    * Biased by one to distinguish zero (uninitialized) and zero (UNIX epoch).
    */
-  private timestamp_biased = 0;
+  private timestampBiased = 0;
   private counter = 0;
 
   /** The random number generator used by the generator. */
@@ -322,7 +322,7 @@ export class V7Generator {
     let value = this.generateOrAbortCore(unixTsMs, rollbackAllowance);
     if (value === undefined) {
       // reset state and resume
-      this.timestamp_biased = 0;
+      this.timestampBiased = 0;
       value = this.generateOrAbortCore(unixTsMs, rollbackAllowance)!;
     }
     return value;
@@ -356,15 +356,15 @@ export class V7Generator {
     }
 
     unixTsMs++;
-    if (unixTsMs > this.timestamp_biased) {
-      this.timestamp_biased = unixTsMs;
+    if (unixTsMs > this.timestampBiased) {
+      this.timestampBiased = unixTsMs;
       this.resetCounter();
-    } else if (unixTsMs + rollbackAllowance >= this.timestamp_biased) {
+    } else if (unixTsMs + rollbackAllowance >= this.timestampBiased) {
       // go on with previous timestamp if new one is not much smaller
       this.counter++;
       if (this.counter > MAX_COUNTER) {
         // increment timestamp at counter overflow
-        this.timestamp_biased++;
+        this.timestampBiased++;
         this.resetCounter();
       }
     } else {
@@ -373,7 +373,7 @@ export class V7Generator {
     }
 
     return UUID.fromFieldsV7(
-      this.timestamp_biased - 1,
+      this.timestampBiased - 1,
       Math.trunc(this.counter / 2 ** 30),
       this.counter & (2 ** 30 - 1),
       this.random.nextUint32(),
