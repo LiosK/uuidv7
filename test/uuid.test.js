@@ -54,9 +54,11 @@ describe("UUID object", function () {
   it("reports variant and version fields", function () {
     const nil = UUID.ofInner(new Uint8Array(16).fill(0x00));
     assert(nil.getVariant() === "NIL" && nil.getVersion() === undefined);
+    assert(nil.isNil());
 
     const max = UUID.ofInner(new Uint8Array(16).fill(0xff));
     assert(max.getVariant() === "MAX" && max.getVersion() === undefined);
+    assert(max.isMax());
 
     const obj = uuidv7obj();
     for (let oct6 = 0; oct6 < 0x100; oct6++) {

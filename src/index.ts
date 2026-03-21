@@ -196,13 +196,13 @@ export class UUID {
     if (n < 0) {
       throw new Error("unreachable");
     } else if (n <= 0b0111) {
-      return this.bytes.every((e) => e === 0) ? "NIL" : "VAR_0";
+      return this.isNil() ? "NIL" : "VAR_0";
     } else if (n <= 0b1011) {
       return "VAR_10";
     } else if (n <= 0b1101) {
       return "VAR_110";
     } else if (n <= 0b1111) {
-      return this.bytes.every((e) => e === 0xff) ? "MAX" : "VAR_RESERVED";
+      return this.isMax() ? "MAX" : "VAR_RESERVED";
     } else {
       throw new Error("unreachable");
     }
@@ -214,6 +214,16 @@ export class UUID {
    */
   getVersion(): number | undefined {
     return this.getVariant() === "VAR_10" ? this.bytes[6] >>> 4 : undefined;
+  }
+
+  /** Returns `true` if `this` is the Nil UUID. */
+  isNil(): boolean {
+    return this.bytes.every((e) => e === 0);
+  }
+
+  /** Returns `true` if `this` is the Max UUID. */
+  isMax(): boolean {
+    return this.bytes.every((e) => e === 0xff);
   }
 
   /** Creates an object from `this`. */
