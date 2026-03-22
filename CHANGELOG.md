@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.2.1 - 2026-03-22
+
+- Minor refactoring and documentation updates.
+
 ## v1.2.0 - 2026-03-22
 
 - Added `setRollbackAllowance()` to `V7Generator` to configure the maximum

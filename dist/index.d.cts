@@ -1,7 +1,7 @@
 /**
  * uuidv7: A JavaScript implementation of UUID version 7
  *
- * Copyright 2021-2025 LiosK
+ * Copyright 2021-2026 LiosK
  *
  * @license Apache-2.0
  * @packageDocumentation

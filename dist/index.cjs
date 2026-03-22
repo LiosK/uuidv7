@@ -2,7 +2,7 @@
 /**
  * uuidv7: A JavaScript implementation of UUID version 7
  *
- * Copyright 2021-2025 LiosK
+ * Copyright 2021-2026 LiosK
  *
  * @license Apache-2.0
  * @packageDocumentation
@@ -368,13 +368,17 @@ class V7Generator {
      * @deprecated Since v1.2.0. Use {@link generateOrResetWithTs} instead.
      */
     generateOrResetCore(unixTsMs, rollbackAllowance) {
-        let value = this.generateOrAbortCore(unixTsMs, rollbackAllowance);
-        if (value === undefined) {
-            // reset state and resume
-            this.timestampBiased = 0;
-            value = this.generateOrAbortCore(unixTsMs, rollbackAllowance);
+        const origRollbackAllowance = this.rollbackAllowance;
+        try {
+            this.setRollbackAllowance(rollbackAllowance);
+            return this.generateOrResetWithTs(unixTsMs);
         }
-        return value;
+        catch (e) {
+            throw e;
+        }
+        finally {
+            this.rollbackAllowance = origRollbackAllowance;
+        }
     }
     /**
      * Generates a new UUIDv7 object from the `unixTsMs` passed, or returns
