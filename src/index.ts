@@ -413,13 +413,15 @@ export class V7Generator {
    * @deprecated Since v1.2.0. Use {@link generateOrResetWithTs} instead.
    */
   generateOrResetCore(unixTsMs: number, rollbackAllowance: number): UUID {
-    let value = this.generateOrAbortCore(unixTsMs, rollbackAllowance);
-    if (value === undefined) {
-      // reset state and resume
-      this.timestampBiased = 0;
-      value = this.generateOrAbortCore(unixTsMs, rollbackAllowance)!;
+    const origRollbackAllowance = this.rollbackAllowance;
+    try {
+      this.setRollbackAllowance(rollbackAllowance);
+      return this.generateOrResetWithTs(unixTsMs);
+    } catch (e) {
+      throw e;
+    } finally {
+      this.rollbackAllowance = origRollbackAllowance;
     }
-    return value;
   }
 
   /**
