@@ -175,7 +175,7 @@ class UUID {
             throw new Error("unreachable");
         }
         else if (n <= 0b0111) {
-            return this.bytes.every((e) => e === 0) ? "NIL" : "VAR_0";
+            return this.isNil() ? "NIL" : "VAR_0";
         }
         else if (n <= 0b1011) {
             return "VAR_10";
@@ -184,7 +184,7 @@ class UUID {
             return "VAR_110";
         }
         else if (n <= 0b1111) {
-            return this.bytes.every((e) => e === 0xff) ? "MAX" : "VAR_RESERVED";
+            return this.isMax() ? "MAX" : "VAR_RESERVED";
         }
         else {
             throw new Error("unreachable");
@@ -196,6 +196,14 @@ class UUID {
      */
     getVersion() {
         return this.getVariant() === "VAR_10" ? this.bytes[6] >>> 4 : undefined;
+    }
+    /** Returns `true` if `this` is the Nil UUID. */
+    isNil() {
+        return this.bytes.every((e) => e === 0);
+    }
+    /** Returns `true` if `this` is the Max UUID. */
+    isMax() {
+        return this.bytes.every((e) => e === 0xff);
     }
     /** Creates an object from `this`. */
     clone() {
@@ -239,9 +247,25 @@ class V7Generator {
         /**
          * Biased by one to distinguish zero (uninitialized) and zero (UNIX epoch).
          */
-        this.timestamp_biased = 0;
+        this.timestampBiased = 0;
         this.counter = 0;
+        this.rollbackAllowance = 10000; // 10 seconds in milliseconds
         this.random = randomNumberGenerator !== null && randomNumberGenerator !== void 0 ? randomNumberGenerator : getDefaultRandom();
+    }
+    /**
+     * Sets the `rollbackAllowance` parameter of the generator.
+     *
+     * The `rollbackAllowance` parameter specifies the amount of `unixTsMs`
+     * rollback that is considered significant. The default value is `10_000`
+     * (milliseconds). See the {@link generate} or {@link generateOrAbort}
+     * documentation for the treatment of the significant rollback.
+     *
+     */
+    setRollbackAllowance(rollbackAllowance) {
+        if (rollbackAllowance < 0 || rollbackAllowance > 281474976710655) {
+            throw new RangeError("`rollbackAllowance` out of reasonable range");
+        }
+        this.rollbackAllowance = rollbackAllowance;
     }
     /**
      * Generates a new UUIDv7 object from the current timestamp, or resets the
@@ -250,15 +274,15 @@ class V7Generator {
      * This method returns a monotonically increasing UUID by reusing the previous
      * timestamp even if the up-to-date timestamp is smaller than the immediately
      * preceding UUID's. However, when such a clock rollback is considered
-     * significant (i.e., by more than ten seconds), this method resets the
+     * significant (by default, more than ten seconds), this method resets the
      * generator and returns a new UUID based on the given timestamp, breaking the
      * increasing order of UUIDs.
      *
      * See {@link generateOrAbort} for the other mode of generation and
-     * {@link generateOrResetCore} for the low-level primitive.
+     * {@link generateOrResetWithTs} for the variant accepting a custom timestamp.
      */
     generate() {
-        return this.generateOrResetCore(Date.now(), 10000);
+        return this.generateOrResetWithTs(Date.now());
     }
     /**
      * Generates a new UUIDv7 object from the current timestamp, or returns
@@ -267,32 +291,30 @@ class V7Generator {
      * This method returns a monotonically increasing UUID by reusing the previous
      * timestamp even if the up-to-date timestamp is smaller than the immediately
      * preceding UUID's. However, when such a clock rollback is considered
-     * significant (i.e., by more than ten seconds), this method aborts and
+     * significant (by default, more than ten seconds), this method aborts and
      * returns `undefined` immediately.
      *
      * See {@link generate} for the other mode of generation and
-     * {@link generateOrAbortCore} for the low-level primitive.
+     * {@link generateOrAbortWithTs} for the variant accepting a custom timestamp.
      */
     generateOrAbort() {
-        return this.generateOrAbortCore(Date.now(), 10000);
+        return this.generateOrAbortWithTs(Date.now());
     }
     /**
      * Generates a new UUIDv7 object from the `unixTsMs` passed, or resets the
      * generator upon significant timestamp rollback.
      *
      * This method is equivalent to {@link generate} except that it takes a custom
-     * timestamp and clock rollback allowance.
+     * timestamp.
      *
-     * @param rollbackAllowance - The amount of `unixTsMs` rollback that is
-     * considered significant. A suggested value is `10_000` (milliseconds).
      * @throws RangeError if `unixTsMs` is not a 48-bit unsigned integer.
      */
-    generateOrResetCore(unixTsMs, rollbackAllowance) {
-        let value = this.generateOrAbortCore(unixTsMs, rollbackAllowance);
+    generateOrResetWithTs(unixTsMs) {
+        let value = this.generateOrAbortWithTs(unixTsMs);
         if (value === undefined) {
             // reset state and resume
-            this.timestamp_biased = 0;
-            value = this.generateOrAbortCore(unixTsMs, rollbackAllowance);
+            this.timestampBiased = 0;
+            value = this.generateOrAbortWithTs(unixTsMs);
         }
         return value;
     }
@@ -301,33 +323,28 @@ class V7Generator {
      * `undefined` upon significant timestamp rollback.
      *
      * This method is equivalent to {@link generateOrAbort} except that it takes a
-     * custom timestamp and clock rollback allowance.
+     * custom timestamp.
      *
-     * @param rollbackAllowance - The amount of `unixTsMs` rollback that is
-     * considered significant. A suggested value is `10_000` (milliseconds).
      * @throws RangeError if `unixTsMs` is not a 48-bit unsigned integer.
      */
-    generateOrAbortCore(unixTsMs, rollbackAllowance) {
+    generateOrAbortWithTs(unixTsMs) {
         const MAX_COUNTER = 4398046511103;
         if (!Number.isInteger(unixTsMs) ||
             unixTsMs < 0 ||
             unixTsMs > 281474976710655) {
             throw new RangeError("`unixTsMs` must be a 48-bit unsigned integer");
         }
-        else if (rollbackAllowance < 0 || rollbackAllowance > 281474976710655) {
-            throw new RangeError("`rollbackAllowance` out of reasonable range");
-        }
         unixTsMs++;
-        if (unixTsMs > this.timestamp_biased) {
-            this.timestamp_biased = unixTsMs;
+        if (unixTsMs > this.timestampBiased) {
+            this.timestampBiased = unixTsMs;
             this.resetCounter();
         }
-        else if (unixTsMs + rollbackAllowance >= this.timestamp_biased) {
+        else if (unixTsMs + this.rollbackAllowance >= this.timestampBiased) {
             // go on with previous timestamp if new one is not much smaller
             this.counter++;
             if (this.counter > MAX_COUNTER) {
                 // increment timestamp at counter overflow
-                this.timestamp_biased++;
+                this.timestampBiased++;
                 this.resetCounter();
             }
         }
@@ -335,7 +352,55 @@ class V7Generator {
             // abort if clock went backwards to unbearable extent
             return undefined;
         }
-        return UUID.fromFieldsV7(this.timestamp_biased - 1, Math.trunc(this.counter / 2 ** 30), this.counter & (2 ** 30 - 1), this.random.nextUint32());
+        return UUID.fromFieldsV7(this.timestampBiased - 1, Math.trunc(this.counter / 2 ** 30), this.counter & (2 ** 30 - 1), this.random.nextUint32());
+    }
+    /**
+     * Generates a new UUIDv7 object from the `unixTsMs` passed, or resets the
+     * generator upon significant timestamp rollback.
+     *
+     * This method is a deprecated version of {@link generateOrResetWithTs} that
+     * accepts the `rollbackAllowance` parameter as an argument, rather than using
+     * the generator-level parameter.
+     *
+     * @param rollbackAllowance - The amount of `unixTsMs` rollback that is
+     * considered significant. A suggested value is `10_000` (milliseconds).
+     * @throws RangeError if `unixTsMs` is not a 48-bit unsigned integer.
+     * @deprecated Since v1.2.0. Use {@link generateOrResetWithTs} instead.
+     */
+    generateOrResetCore(unixTsMs, rollbackAllowance) {
+        let value = this.generateOrAbortCore(unixTsMs, rollbackAllowance);
+        if (value === undefined) {
+            // reset state and resume
+            this.timestampBiased = 0;
+            value = this.generateOrAbortCore(unixTsMs, rollbackAllowance);
+        }
+        return value;
+    }
+    /**
+     * Generates a new UUIDv7 object from the `unixTsMs` passed, or returns
+     * `undefined` upon significant timestamp rollback.
+     *
+     * This method is a deprecated version of {@link generateOrAbortWithTs} that
+     * accepts the `rollbackAllowance` parameter as an argument, rather than using
+     * the generator-level parameter.
+     *
+     * @param rollbackAllowance - The amount of `unixTsMs` rollback that is
+     * considered significant. A suggested value is `10_000` (milliseconds).
+     * @throws RangeError if `unixTsMs` is not a 48-bit unsigned integer.
+     * @deprecated Since v1.2.0. Use {@link generateOrAbortWithTs} instead.
+     */
+    generateOrAbortCore(unixTsMs, rollbackAllowance) {
+        const origRollbackAllowance = this.rollbackAllowance;
+        try {
+            this.setRollbackAllowance(rollbackAllowance);
+            return this.generateOrAbortWithTs(unixTsMs);
+        }
+        catch (e) {
+            throw e;
+        }
+        finally {
+            this.rollbackAllowance = origRollbackAllowance;
+        }
     }
     /** Initializes the counter at a 42-bit random integer. */
     resetCounter() {

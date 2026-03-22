@@ -72,6 +72,10 @@ export declare class UUID {
      * not have the variant field value of `0b10`.
      */
     getVersion(): number | undefined;
+    /** Returns `true` if `this` is the Nil UUID. */
+    isNil(): boolean;
+    /** Returns `true` if `this` is the Max UUID. */
+    isMax(): boolean;
     /** Creates an object from `this`. */
     clone(): UUID;
     /** Returns true if `this` is equivalent to `other`. */
@@ -95,10 +99,11 @@ export declare class V7Generator {
     /**
      * Biased by one to distinguish zero (uninitialized) and zero (UNIX epoch).
      */
-    private timestamp_biased;
+    private timestampBiased;
     private counter;
     /** The random number generator used by the generator. */
     private readonly random;
+    private rollbackAllowance;
     /**
      * Creates a generator object with the default random number generator, or
      * with the specified one if passed as an argument. The specified random
@@ -109,18 +114,28 @@ export declare class V7Generator {
         nextUint32(): number;
     });
     /**
+     * Sets the `rollbackAllowance` parameter of the generator.
+     *
+     * The `rollbackAllowance` parameter specifies the amount of `unixTsMs`
+     * rollback that is considered significant. The default value is `10_000`
+     * (milliseconds). See the {@link generate} or {@link generateOrAbort}
+     * documentation for the treatment of the significant rollback.
+     *
+     */
+    setRollbackAllowance(rollbackAllowance: number): void;
+    /**
      * Generates a new UUIDv7 object from the current timestamp, or resets the
      * generator upon significant timestamp rollback.
      *
      * This method returns a monotonically increasing UUID by reusing the previous
      * timestamp even if the up-to-date timestamp is smaller than the immediately
      * preceding UUID's. However, when such a clock rollback is considered
-     * significant (i.e., by more than ten seconds), this method resets the
+     * significant (by default, more than ten seconds), this method resets the
      * generator and returns a new UUID based on the given timestamp, breaking the
      * increasing order of UUIDs.
      *
      * See {@link generateOrAbort} for the other mode of generation and
-     * {@link generateOrResetCore} for the low-level primitive.
+     * {@link generateOrResetWithTs} for the variant accepting a custom timestamp.
      */
     generate(): UUID;
     /**
@@ -130,11 +145,11 @@ export declare class V7Generator {
      * This method returns a monotonically increasing UUID by reusing the previous
      * timestamp even if the up-to-date timestamp is smaller than the immediately
      * preceding UUID's. However, when such a clock rollback is considered
-     * significant (i.e., by more than ten seconds), this method aborts and
+     * significant (by default, more than ten seconds), this method aborts and
      * returns `undefined` immediately.
      *
      * See {@link generate} for the other mode of generation and
-     * {@link generateOrAbortCore} for the low-level primitive.
+     * {@link generateOrAbortWithTs} for the variant accepting a custom timestamp.
      */
     generateOrAbort(): UUID | undefined;
     /**
@@ -142,23 +157,47 @@ export declare class V7Generator {
      * generator upon significant timestamp rollback.
      *
      * This method is equivalent to {@link generate} except that it takes a custom
-     * timestamp and clock rollback allowance.
+     * timestamp.
+     *
+     * @throws RangeError if `unixTsMs` is not a 48-bit unsigned integer.
+     */
+    generateOrResetWithTs(unixTsMs: number): UUID;
+    /**
+     * Generates a new UUIDv7 object from the `unixTsMs` passed, or returns
+     * `undefined` upon significant timestamp rollback.
+     *
+     * This method is equivalent to {@link generateOrAbort} except that it takes a
+     * custom timestamp.
+     *
+     * @throws RangeError if `unixTsMs` is not a 48-bit unsigned integer.
+     */
+    generateOrAbortWithTs(unixTsMs: number): UUID | undefined;
+    /**
+     * Generates a new UUIDv7 object from the `unixTsMs` passed, or resets the
+     * generator upon significant timestamp rollback.
+     *
+     * This method is a deprecated version of {@link generateOrResetWithTs} that
+     * accepts the `rollbackAllowance` parameter as an argument, rather than using
+     * the generator-level parameter.
      *
      * @param rollbackAllowance - The amount of `unixTsMs` rollback that is
      * considered significant. A suggested value is `10_000` (milliseconds).
      * @throws RangeError if `unixTsMs` is not a 48-bit unsigned integer.
+     * @deprecated Since v1.2.0. Use {@link generateOrResetWithTs} instead.
      */
     generateOrResetCore(unixTsMs: number, rollbackAllowance: number): UUID;
     /**
      * Generates a new UUIDv7 object from the `unixTsMs` passed, or returns
      * `undefined` upon significant timestamp rollback.
      *
-     * This method is equivalent to {@link generateOrAbort} except that it takes a
-     * custom timestamp and clock rollback allowance.
+     * This method is a deprecated version of {@link generateOrAbortWithTs} that
+     * accepts the `rollbackAllowance` parameter as an argument, rather than using
+     * the generator-level parameter.
      *
      * @param rollbackAllowance - The amount of `unixTsMs` rollback that is
      * considered significant. A suggested value is `10_000` (milliseconds).
      * @throws RangeError if `unixTsMs` is not a 48-bit unsigned integer.
+     * @deprecated Since v1.2.0. Use {@link generateOrAbortWithTs} instead.
      */
     generateOrAbortCore(unixTsMs: number, rollbackAllowance: number): UUID | undefined;
     /** Initializes the counter at a 42-bit random integer. */

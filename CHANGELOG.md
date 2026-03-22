@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.2.0 - Unreleased
+## v1.2.0 - 2026-03-22
 
 - Added `setRollbackAllowance()` to `V7Generator` to configure the maximum
   allowed timestamp rollback for each generator instance. This generator-level
