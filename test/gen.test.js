@@ -21,12 +21,21 @@ describe("V7Generator", function () {
       20_000,
     ]) {
       let ts = Date.now();
-      const [g2, g3] = [new V7Generator(), new V7Generator()];
+      const [g0, g1, g2, g3] = [
+        new V7Generator(),
+        new V7Generator(),
+        new V7Generator(),
+        new V7Generator(),
+      ];
 
       if (rollbackAllowance !== DEFAULT_ROLLBACK_ALLOWANCE) {
+        g0.setRollbackAllowance(rollbackAllowance);
+        g1.setRollbackAllowance(rollbackAllowance);
       }
 
       const methods = [
+        [() => g0.generateOrResetWithTs(ts), true],
+        [() => g1.generateOrAbortWithTs(ts), false],
         [() => g2.generateOrResetCore(ts, rollbackAllowance), true],
         [() => g3.generateOrAbortCore(ts, rollbackAllowance), false],
       ];
@@ -101,6 +110,17 @@ describe("V7Generator", function () {
   });
 
   describe("#generateOrResetCore()", function () {
+    it("does not change generator-level rollback allowance", function () {
+      const ts = Date.now();
+
+      const g = new V7Generator();
+      g.setRollbackAllowance(100);
+      assert(g.rollbackAllowance === 100);
+
+      g.generateOrResetCore(ts, 1_000);
+      assert(g.rollbackAllowance === 100);
+    });
+
     it("generates increasing IDs even with decreasing or constant timestamp", function () {
       const ts = 0x0123_4567_89ab;
       const g = new V7Generator();
@@ -138,6 +158,17 @@ describe("V7Generator", function () {
   });
 
   describe("#generateOrAbortCore()", function () {
+    it("does not change generator-level rollback allowance", function () {
+      const ts = Date.now();
+
+      const g = new V7Generator();
+      g.setRollbackAllowance(100);
+      assert(g.rollbackAllowance === 100);
+
+      g.generateOrAbortCore(ts, 1_000);
+      assert(g.rollbackAllowance === 100);
+    });
+
     it("generates increasing IDs even with decreasing or constant timestamp", function () {
       const ts = 0x0123_4567_89ab;
       const g = new V7Generator();

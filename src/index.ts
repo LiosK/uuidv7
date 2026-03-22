@@ -270,6 +270,8 @@ export class V7Generator {
   /** The random number generator used by the generator. */
   private readonly random: { nextUint32(): number };
 
+  private rollbackAllowance = 10_000; // 10 seconds in milliseconds
+
   /**
    * Creates a generator object with the default random number generator, or
    * with the specified one if passed as an argument. The specified random
@@ -283,21 +285,37 @@ export class V7Generator {
   }
 
   /**
+   * Sets the `rollbackAllowance` parameter of the generator.
+   *
+   * The `rollbackAllowance` parameter specifies the amount of `unixTsMs`
+   * rollback that is considered significant. The default value is `10_000`
+   * (milliseconds). See the {@link generate} or {@link generateOrAbort}
+   * documentation for the treatment of the significant rollback.
+   *
+   */
+  setRollbackAllowance(rollbackAllowance: number) {
+    if (rollbackAllowance < 0 || rollbackAllowance > 0xffff_ffff_ffff) {
+      throw new RangeError("`rollbackAllowance` out of reasonable range");
+    }
+    this.rollbackAllowance = rollbackAllowance;
+  }
+
+  /**
    * Generates a new UUIDv7 object from the current timestamp, or resets the
    * generator upon significant timestamp rollback.
    *
    * This method returns a monotonically increasing UUID by reusing the previous
    * timestamp even if the up-to-date timestamp is smaller than the immediately
    * preceding UUID's. However, when such a clock rollback is considered
-   * significant (i.e., by more than ten seconds), this method resets the
+   * significant (by default, more than ten seconds), this method resets the
    * generator and returns a new UUID based on the given timestamp, breaking the
    * increasing order of UUIDs.
    *
    * See {@link generateOrAbort} for the other mode of generation and
-   * {@link generateOrResetCore} for the low-level primitive.
+   * {@link generateOrResetWithTs} for the variant accepting a custom timestamp.
    */
   generate(): UUID {
-    return this.generateOrResetCore(Date.now(), 10_000);
+    return this.generateOrResetWithTs(Date.now());
   }
 
   /**
@@ -307,14 +325,78 @@ export class V7Generator {
    * This method returns a monotonically increasing UUID by reusing the previous
    * timestamp even if the up-to-date timestamp is smaller than the immediately
    * preceding UUID's. However, when such a clock rollback is considered
-   * significant (i.e., by more than ten seconds), this method aborts and
+   * significant (by default, more than ten seconds), this method aborts and
    * returns `undefined` immediately.
    *
    * See {@link generate} for the other mode of generation and
-   * {@link generateOrAbortCore} for the low-level primitive.
+   * {@link generateOrAbortWithTs} for the variant accepting a custom timestamp.
    */
   generateOrAbort(): UUID | undefined {
-    return this.generateOrAbortCore(Date.now(), 10_000);
+    return this.generateOrAbortWithTs(Date.now());
+  }
+
+  /**
+   * Generates a new UUIDv7 object from the `unixTsMs` passed, or resets the
+   * generator upon significant timestamp rollback.
+   *
+   * This method is equivalent to {@link generate} except that it takes a custom
+   * timestamp.
+   *
+   * @throws RangeError if `unixTsMs` is not a 48-bit unsigned integer.
+   */
+  generateOrResetWithTs(unixTsMs: number): UUID {
+    let value = this.generateOrAbortWithTs(unixTsMs);
+    if (value === undefined) {
+      // reset state and resume
+      this.timestampBiased = 0;
+      value = this.generateOrAbortWithTs(unixTsMs)!;
+    }
+    return value;
+  }
+
+  /**
+   * Generates a new UUIDv7 object from the `unixTsMs` passed, or returns
+   * `undefined` upon significant timestamp rollback.
+   *
+   * This method is equivalent to {@link generateOrAbort} except that it takes a
+   * custom timestamp.
+   *
+   * @throws RangeError if `unixTsMs` is not a 48-bit unsigned integer.
+   */
+  generateOrAbortWithTs(unixTsMs: number): UUID | undefined {
+    const MAX_COUNTER = 0x3ff_ffff_ffff;
+
+    if (
+      !Number.isInteger(unixTsMs) ||
+      unixTsMs < 0 ||
+      unixTsMs > 0xffff_ffff_ffff
+    ) {
+      throw new RangeError("`unixTsMs` must be a 48-bit unsigned integer");
+    }
+
+    unixTsMs++;
+    if (unixTsMs > this.timestampBiased) {
+      this.timestampBiased = unixTsMs;
+      this.resetCounter();
+    } else if (unixTsMs + this.rollbackAllowance >= this.timestampBiased) {
+      // go on with previous timestamp if new one is not much smaller
+      this.counter++;
+      if (this.counter > MAX_COUNTER) {
+        // increment timestamp at counter overflow
+        this.timestampBiased++;
+        this.resetCounter();
+      }
+    } else {
+      // abort if clock went backwards to unbearable extent
+      return undefined;
+    }
+
+    return UUID.fromFieldsV7(
+      this.timestampBiased - 1,
+      Math.trunc(this.counter / 2 ** 30),
+      this.counter & (2 ** 30 - 1),
+      this.random.nextUint32(),
+    );
   }
 
   /**
@@ -353,41 +435,15 @@ export class V7Generator {
     unixTsMs: number,
     rollbackAllowance: number,
   ): UUID | undefined {
-    const MAX_COUNTER = 0x3ff_ffff_ffff;
-
-    if (
-      !Number.isInteger(unixTsMs) ||
-      unixTsMs < 0 ||
-      unixTsMs > 0xffff_ffff_ffff
-    ) {
-      throw new RangeError("`unixTsMs` must be a 48-bit unsigned integer");
-    } else if (rollbackAllowance < 0 || rollbackAllowance > 0xffff_ffff_ffff) {
-      throw new RangeError("`rollbackAllowance` out of reasonable range");
+    const origRollbackAllowance = this.rollbackAllowance;
+    try {
+      this.setRollbackAllowance(rollbackAllowance);
+      return this.generateOrAbortWithTs(unixTsMs);
+    } catch (e) {
+      throw e;
+    } finally {
+      this.rollbackAllowance = origRollbackAllowance;
     }
-
-    unixTsMs++;
-    if (unixTsMs > this.timestampBiased) {
-      this.timestampBiased = unixTsMs;
-      this.resetCounter();
-    } else if (unixTsMs + rollbackAllowance >= this.timestampBiased) {
-      // go on with previous timestamp if new one is not much smaller
-      this.counter++;
-      if (this.counter > MAX_COUNTER) {
-        // increment timestamp at counter overflow
-        this.timestampBiased++;
-        this.resetCounter();
-      }
-    } else {
-      // abort if clock went backwards to unbearable extent
-      return undefined;
-    }
-
-    return UUID.fromFieldsV7(
-      this.timestampBiased - 1,
-      Math.trunc(this.counter / 2 ** 30),
-      this.counter & (2 ** 30 - 1),
-      this.random.nextUint32(),
-    );
   }
 
   /** Initializes the counter at a 42-bit random integer. */
