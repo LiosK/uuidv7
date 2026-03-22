@@ -403,12 +403,14 @@ export class V7Generator {
    * Generates a new UUIDv7 object from the `unixTsMs` passed, or resets the
    * generator upon significant timestamp rollback.
    *
-   * This method is equivalent to {@link generate} except that it takes a custom
-   * timestamp and clock rollback allowance.
+   * This method is a deprecated version of {@link generateOrResetWithTs} that
+   * accepts the `rollbackAllowance` parameter as an argument, rather than using
+   * the generator-level parameter.
    *
    * @param rollbackAllowance - The amount of `unixTsMs` rollback that is
    * considered significant. A suggested value is `10_000` (milliseconds).
    * @throws RangeError if `unixTsMs` is not a 48-bit unsigned integer.
+   * @deprecated Since v1.2.0. Use {@link generateOrResetWithTs} instead.
    */
   generateOrResetCore(unixTsMs: number, rollbackAllowance: number): UUID {
     let value = this.generateOrAbortCore(unixTsMs, rollbackAllowance);
@@ -424,12 +426,14 @@ export class V7Generator {
    * Generates a new UUIDv7 object from the `unixTsMs` passed, or returns
    * `undefined` upon significant timestamp rollback.
    *
-   * This method is equivalent to {@link generateOrAbort} except that it takes a
-   * custom timestamp and clock rollback allowance.
+   * This method is a deprecated version of {@link generateOrAbortWithTs} that
+   * accepts the `rollbackAllowance` parameter as an argument, rather than using
+   * the generator-level parameter.
    *
    * @param rollbackAllowance - The amount of `unixTsMs` rollback that is
    * considered significant. A suggested value is `10_000` (milliseconds).
    * @throws RangeError if `unixTsMs` is not a 48-bit unsigned integer.
+   * @deprecated Since v1.2.0. Use {@link generateOrAbortWithTs} instead.
    */
   generateOrAbortCore(
     unixTsMs: number,
