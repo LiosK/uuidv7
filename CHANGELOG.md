@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Migrated to TypeScript 6.0.
+
 ## v1.2.1 - 2026-03-22
 
 - Minor refactoring and documentation updates.

@@ -1,15 +1,19 @@
 {
   "compilerOptions": {
-    "target": "es2016",
+    "rootDir": "./src",
+    "outDir": "./dist",
     "module": "node16",
-    "moduleResolution": "node16",
+    "target": "es2016",
+    "types": [],
     "declaration": true,
-    "outDir": "./dist/",
     "stripInternal": true,
-    "isolatedModules": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
+    // "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
     "strict": true,
+    // "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "noUncheckedSideEffectImports": true,
+    "moduleDetection": "force",
     "skipLibCheck": true
   }
 }
