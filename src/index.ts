@@ -531,7 +531,7 @@ export const uuidv7 = (): string => uuidv7obj().toString();
 
 /** Generates a UUIDv7 object. */
 export const uuidv7obj = (): UUID =>
-  (defaultGenerator || (defaultGenerator = new V7Generator())).generate();
+  (defaultGenerator ??= new V7Generator()).generate();
 
 /**
  * Generates a UUIDv4 string.
@@ -543,4 +543,4 @@ export const uuidv4 = (): string => uuidv4obj().toString();
 
 /** Generates a UUIDv4 object. */
 export const uuidv4obj = (): UUID =>
-  (defaultGenerator || (defaultGenerator = new V7Generator())).generateV4();
+  (defaultGenerator ??= new V7Generator()).generateV4();

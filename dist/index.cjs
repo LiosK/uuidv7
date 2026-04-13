@@ -91,26 +91,31 @@ class UUID {
      * @throws SyntaxError if the argument could not parse as a valid UUID string.
      */
     static parse(uuid) {
-        var _a, _b, _c, _d;
         let hex = undefined;
         switch (uuid.length) {
             case 32:
-                hex = (_a = /^[0-9a-f]{32}$/i.exec(uuid)) === null || _a === void 0 ? void 0 : _a[0];
+                hex = /^[0-9a-f]{32}$/i.exec(uuid)?.[0];
                 break;
             case 36:
                 hex =
-                    (_b = /^([0-9a-f]{8})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{12})$/i
-                        .exec(uuid)) === null || _b === void 0 ? void 0 : _b.slice(1, 6).join("");
+                    /^([0-9a-f]{8})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{12})$/i
+                        .exec(uuid)
+                        ?.slice(1, 6)
+                        .join("");
                 break;
             case 38:
                 hex =
-                    (_c = /^\{([0-9a-f]{8})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{12})\}$/i
-                        .exec(uuid)) === null || _c === void 0 ? void 0 : _c.slice(1, 6).join("");
+                    /^\{([0-9a-f]{8})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{12})\}$/i
+                        .exec(uuid)
+                        ?.slice(1, 6)
+                        .join("");
                 break;
             case 45:
                 hex =
-                    (_d = /^urn:uuid:([0-9a-f]{8})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{12})$/i
-                        .exec(uuid)) === null || _d === void 0 ? void 0 : _d.slice(1, 6).join("");
+                    /^urn:uuid:([0-9a-f]{8})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{12})$/i
+                        .exec(uuid)
+                        ?.slice(1, 6)
+                        .join("");
                 break;
             default:
                 break;
@@ -250,7 +255,7 @@ class V7Generator {
         this.timestampBiased = 0;
         this.counter = 0;
         this.rollbackAllowance = 10000; // 10 seconds in milliseconds
-        this.random = randomNumberGenerator !== null && randomNumberGenerator !== void 0 ? randomNumberGenerator : getDefaultRandom();
+        this.random = randomNumberGenerator ?? getDefaultRandom();
     }
     /**
      * Sets the `rollbackAllowance` parameter of the generator.
@@ -470,7 +475,7 @@ let defaultGenerator;
 const uuidv7 = () => (0, exports.uuidv7obj)().toString();
 exports.uuidv7 = uuidv7;
 /** Generates a UUIDv7 object. */
-const uuidv7obj = () => (defaultGenerator || (defaultGenerator = new V7Generator())).generate();
+const uuidv7obj = () => (defaultGenerator ?? (defaultGenerator = new V7Generator())).generate();
 exports.uuidv7obj = uuidv7obj;
 /**
  * Generates a UUIDv4 string.
@@ -481,5 +486,5 @@ exports.uuidv7obj = uuidv7obj;
 const uuidv4 = () => (0, exports.uuidv4obj)().toString();
 exports.uuidv4 = uuidv4;
 /** Generates a UUIDv4 object. */
-const uuidv4obj = () => (defaultGenerator || (defaultGenerator = new V7Generator())).generateV4();
+const uuidv4obj = () => (defaultGenerator ?? (defaultGenerator = new V7Generator())).generateV4();
 exports.uuidv4obj = uuidv4obj;

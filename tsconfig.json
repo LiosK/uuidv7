@@ -2,8 +2,8 @@
   "compilerOptions": {
     "rootDir": "./src",
     "outDir": "./dist",
-    "module": "node16",
-    "target": "es2016",
+    "module": "node20",
+    "target": "es2020",
     "types": [],
     "declaration": true,
     "stripInternal": true,
