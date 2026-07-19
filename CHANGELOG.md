@@ -3,7 +3,7 @@
 ## v1.3.0 - unreleased
 
 - Migrated the target to ES2020 from ES2016.
-- Migrated to TypeScript 6.0.
+- Migrated to TypeScript 7.0.
 - Updated dev dependencies.
 
 ## v1.2.1 - 2026-03-22
