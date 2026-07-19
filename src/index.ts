@@ -186,12 +186,7 @@ export class UUID {
    * subsumed under the variants `0b0` and `0b111`, respectively.
    */
   getVariant():
-    | "VAR_0"
-    | "VAR_10"
-    | "VAR_110"
-    | "VAR_RESERVED"
-    | "NIL"
-    | "MAX" {
+    "VAR_0" | "VAR_10" | "VAR_110" | "VAR_RESERVED" | "NIL" | "MAX" {
     const n = this.bytes[8] >>> 4;
     if (n < 0) {
       throw new Error("unreachable");
