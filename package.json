@@ -40,8 +40,8 @@
   },
   "homepage": "https://github.com/LiosK/uuidv7#readme",
   "devDependencies": {
-    "mocha": "^11.7.5",
-    "typedoc": "^0.28.19",
+    "mocha": "^11.7.6",
+    "typedoc": "^0.28.20",
     "typescript": "^6.0.3"
   }
 }
