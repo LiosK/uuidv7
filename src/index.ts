@@ -491,8 +491,9 @@ const getDefaultRandom = (): { nextUint32(): number } => {
     }
     return {
       nextUint32: (): number =>
-        Math.trunc(Math.random() * 0x1_0000) * 0x1_0000 +
-        Math.trunc(Math.random() * 0x1_0000),
+        (Math.trunc(Math.random() * 0x1_0000) * 0x1_0000 +
+          Math.trunc(Math.random() * 0x1_0000)) >>>
+        0,
     };
   }
 };
