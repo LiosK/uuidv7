@@ -12,6 +12,38 @@ describe("V7Generator", function () {
   const timestamp = (uuid) =>
     uuid.bytes.slice(0, 6).reduce((acc, e) => acc * 256 + e);
 
+  it("coerces invalid fallback RNG output to a uint32", function () {
+    const cryptoDescriptor = Object.getOwnPropertyDescriptor(
+      globalThis,
+      "crypto",
+    );
+    const originalRandom = Math.random;
+    const denyWeakRng = globalThis.UUIDV7_DENY_WEAK_RNG;
+
+    try {
+      Object.defineProperty(globalThis, "crypto", {
+        configurable: true,
+        value: undefined,
+      });
+      globalThis.UUIDV7_DENY_WEAK_RNG = false;
+
+      for (const value of [1, 1.5, Number.NaN]) {
+        Math.random = () => value;
+        const uuid = new V7Generator().generate();
+        assert(uuid.getVersion() === 7);
+        assert(uuid.getVariant() === "VAR_10");
+      }
+    } finally {
+      if (cryptoDescriptor) {
+        Object.defineProperty(globalThis, "crypto", cryptoDescriptor);
+      } else {
+        delete globalThis.crypto;
+      }
+      Math.random = originalRandom;
+      globalThis.UUIDV7_DENY_WEAK_RNG = denyWeakRng;
+    }
+  });
+
   it("handles clock rollback according to specifications", function () {
     const DEFAULT_ROLLBACK_ALLOWANCE = 10_000;
 
