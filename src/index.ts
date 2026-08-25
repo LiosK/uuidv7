@@ -490,10 +490,13 @@ const getDefaultRandom = (): { nextUint32(): number } => {
       throw new Error("no cryptographically strong RNG available");
     }
     return {
-      nextUint32: (): number =>
-        (Math.trunc(Math.random() * 0x1_0000) * 0x1_0000 +
-          Math.trunc(Math.random() * 0x1_0000)) >>>
-        0,
+      nextUint32: (): number => {
+        const output =
+          Math.trunc(Math.random() * 0x1_0000) * 0x1_0000 +
+          Math.trunc(Math.random() * 0x1_0000);
+        // coerce output to Uint32 in case rounding produces otherwise
+        return output >>> 0;
+      },
     };
   }
 };

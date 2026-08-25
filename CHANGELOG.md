@@ -2,9 +2,13 @@
 
 ## v1.3.0 - unreleased
 
+- Fixed the `Math.random()` fallback RNG to coerce the output to `Uint32` in
+  case the IEEE 754 rounding rule results in a value out of the range. ([#17])
 - Migrated the target to ES2020 from ES2016.
 - Migrated to TypeScript 7.0.
 - Updated dev dependencies.
+
+[#17]: https://github.com/LiosK/uuidv7/pull/17
 
 ## v1.2.1 - 2026-03-22
 
